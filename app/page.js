@@ -112,12 +112,6 @@ export default async function HomePage() {
             >
               🎓 स्टूडेंट लॉगिन
             </Link>
-            <a
-              href={COLLEGE_EXE_URL}
-              className="bg-gray-800 text-white px-8 py-3 rounded-lg hover:bg-gray-700 font-medium text-sm shadow-sm"
-            >
-              🖥️ Windows App डाउनलोड करें
-            </a>
           </div>
           <p className="text-xs text-gray-400 mt-3">
             Android पर install करें: Chrome → ⋮ → होम स्क्रीन पर जोड़ें
