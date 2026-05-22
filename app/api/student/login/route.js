@@ -4,10 +4,24 @@ import { students } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function POST(request) {
-  const { roll_number, phone } = await request.json();
+  const { phone, password, admission_no } = await request.json();
 
-  if (!roll_number || !phone) {
-    return NextResponse.json({ success: false, message: "Roll number and phone required" }, { status: 400 });
+  if (!phone || !password || !admission_no) {
+    return NextResponse.json(
+      { success: false, message: "Mobile number and password required" },
+      { status: 400 },
+    );
+  }
+
+  const cleanPhone = String(phone).trim();
+  const cleanPass = String(password).trim();
+
+  // Password must be last 6 digits of phone
+  if (cleanPhone.length < 6 || cleanPhone.slice(-6) !== cleanPass) {
+    return NextResponse.json(
+      { success: false, message: "Invalid mobile number or password" },
+      { status: 401 },
+    );
   }
 
   const result = await db
@@ -15,13 +29,16 @@ export async function POST(request) {
     .from(students)
     .where(
       and(
-        eq(students.roll_number, roll_number.trim()),
-        eq(students.phone, phone.trim())
-      )
+        eq(students.phone, cleanPhone),
+        eq(students.admission_no, admission_no.trim()),
+      ),
     );
 
   if (result.length === 0) {
-    return NextResponse.json({ success: false, message: "Invalid roll number or phone number" }, { status: 401 });
+    return NextResponse.json(
+      { success: false, message: "Mobile number not registered" },
+      { status: 401 },
+    );
   }
 
   const student = result[0];

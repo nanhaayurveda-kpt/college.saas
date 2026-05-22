@@ -1,4 +1,3 @@
-// app/students/page.js
 export const dynamic = "force-dynamic";
 
 import { db } from "@/lib/db";
@@ -8,18 +7,27 @@ import { deleteStudent } from "@/app/actions";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
+import { users } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 export default async function StudentsPage({ searchParams }) {
   const cookieStore = await cookies();
   const session = await getSession(cookieStore.get("session")?.value);
   if (!session) redirect("/login");
-
+  const userResult = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, session.email));
+  const user = userResult[0];
   const params = await searchParams;
   const search = params?.search?.toLowerCase() || "";
   const selectedFaculty = params?.faculty || "";
   const selectedYear = params?.year || "";
 
-  const allStudents = await db.select().from(students);
+  const allStudents = await db
+    .select()
+    .from(students)
+    .where(eq(students.user_id, user.id));
 
   const faculties = [...new Set(allStudents.map((s) => s.faculty))].sort();
   const years = [
@@ -38,6 +46,7 @@ export default async function StudentsPage({ searchParams }) {
     return matchSearch && matchFaculty && matchYear;
   });
 
+  // Faculty → Course → Semester grouped
   const grouped = {};
   filtered.forEach((s) => {
     const fac = s.faculty || "—";
@@ -51,18 +60,18 @@ export default async function StudentsPage({ searchParams }) {
   const sortedFaculties = Object.keys(grouped).sort();
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+    <div>
+      <div className="flex justify-between items-center mb-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Students</h1>
           <p className="text-gray-500 text-xs mt-0.5">
-            Total: <strong>{allStudents.length}</strong> · Showing: {filtered.length}
+            Total enrolled: <strong>{allStudents.length}</strong> · Showing: {filtered.length}
           </p>
           <p className="text-amber-600 text-xs mt-1">
-            Click on a student to view details & concession.
+            Click on a student to view concession & details.
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2">
           <Link
             href="/students/import"
             className="bg-white border border-indigo-300 text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium"
@@ -79,7 +88,7 @@ export default async function StudentsPage({ searchParams }) {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2 mb-4">
         <div className="bg-indigo-50 rounded-lg p-3 text-center border border-indigo-100">
           <div className="text-lg font-bold text-indigo-700">{allStudents.length}</div>
           <div className="text-xs text-indigo-500">Total</div>
@@ -102,7 +111,7 @@ export default async function StudentsPage({ searchParams }) {
       <form
         method="GET"
         action="/students"
-        className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm flex flex-col gap-2"
+        className="bg-white rounded-xl border border-gray-100 p-3 mb-4 shadow-sm flex flex-col gap-2"
       >
         <input
           type="text"
@@ -139,9 +148,7 @@ export default async function StudentsPage({ searchParams }) {
             Filter
           </button>
           {(search || selectedFaculty || selectedYear) && (
-            <a href="/students" className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm">
-              ✕
-            </a>
+            <a href="/students" className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm">✕</a>
           )}
         </div>
       </form>
@@ -194,7 +201,7 @@ export default async function StudentsPage({ searchParams }) {
                                     <div className="min-w-0">
                                       <Link
                                         href={`/students/${student.id}`}
-                                        className="text-sm font-medium text-gray-900 truncate hover:text-indigo-600 block"
+                                        className="text-sm font-medium text-gray-900 truncate hover:text-indigo-600"
                                       >
                                         {student.name}
                                       </Link>
@@ -210,7 +217,7 @@ export default async function StudentsPage({ searchParams }) {
                                     <Link href={`/students/${student.id}/edit`} className="text-xs text-indigo-600 font-medium">
                                       Edit
                                     </Link>
-                                    <form action={deleteStudent} className="inline">
+                                    <form method="POST" action="/api/students/delete" className="inline">
                                       <input type="hidden" name="id" value={student.id} />
                                       <button type="submit" className="text-xs text-red-500 font-medium">
                                         Delete

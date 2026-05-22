@@ -26,10 +26,15 @@ export async function GET(request) {
   let rows;
   if (studentId) {
     rows = await db.select().from(certificates).where(
-      and(eq(certificates.student_id, Number(studentId)), eq(certificates.user_id, user.id))
+      and(
+        eq(certificates.student_id, Number(studentId)),
+        eq(certificates.user_id, user.id)
+      )
     );
   } else {
-    rows = await db.select().from(certificates).where(eq(certificates.user_id, user.id));
+    rows = await db.select().from(certificates).where(
+      eq(certificates.user_id, user.id)
+    );
   }
 
   return Response.json(rows);
@@ -41,8 +46,15 @@ export async function POST(request) {
 
   const body = await request.json();
   const {
-    student_id, cert_type, issue_date, serial_no,
-    reason, last_course, last_exam_passed, conduct, custom_content,
+    student_id,
+    cert_type,
+    issue_date,
+    serial_no,
+    reason,
+    last_course,
+    last_exam_passed,
+    conduct,
+    custom_content,
   } = body;
 
   if (!student_id || !cert_type || !issue_date) {

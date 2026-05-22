@@ -12,7 +12,7 @@ export async function POST(request) {
   const phone = formData.get("phone");
 
   if (!pin || !phone) {
-    return NextResponse.redirect(new URL("/professor-login?error=1", request.url));
+    return NextResponse.redirect(new URL("/professor-login?error=1", request.url), { status: 303 });
   }
 
   const result = await db.select().from(professors).where(
@@ -21,7 +21,7 @@ export async function POST(request) {
   const professor = result[0];
 
   if (!professor) {
-    return NextResponse.redirect(new URL("/professor-login?error=1", request.url));
+    return NextResponse.redirect(new URL("/professor-login?error=1", request.url), { status: 303 });
   }
 
   const token = await new SignJWT({
@@ -33,7 +33,7 @@ export async function POST(request) {
     .setExpirationTime("12h")
     .sign(SECRET);
 
-  const response = NextResponse.redirect(new URL("/professor/dashboard", request.url));
+  const response = NextResponse.redirect(new URL("/professor/dashboard", request.url), { status: 303 });
   response.cookies.set("professor_session", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

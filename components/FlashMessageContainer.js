@@ -6,6 +6,7 @@ export default function FlashMessageContainer() {
   const [flash, setFlash] = useState(null);
 
   useEffect(() => {
+    // Read flash cookie on client side
     const getCookie = (name) => {
       const match = document.cookie
         .split("; ")
@@ -18,10 +19,14 @@ export default function FlashMessageContainer() {
       try {
         const parsed = JSON.parse(flashValue);
         setFlash(parsed);
+
+        // Delete the cookie after reading
         document.cookie = "flash=; path=/; max-age=0";
+
+        // Auto-hide after 4 seconds
         setTimeout(() => setFlash(null), 4000);
       } catch {
-        // ignore
+        // ignore parse errors
       }
     }
   }, []);
@@ -29,9 +34,18 @@ export default function FlashMessageContainer() {
   if (!flash) return null;
 
   const styles = {
-    success: { bg: "bg-green-100 border-green-500 text-green-800", icon: "✅" },
-    error:   { bg: "bg-red-100 border-red-500 text-red-800",       icon: "❌" },
-    warning: { bg: "bg-yellow-100 border-yellow-500 text-yellow-800", icon: "⚠️" },
+    success: {
+      bg: "bg-green-100 border-green-500 text-green-800",
+      icon: "✅",
+    },
+    error: {
+      bg: "bg-red-100 border-red-500 text-red-800",
+      icon: "❌",
+    },
+    warning: {
+      bg: "bg-yellow-100 border-yellow-500 text-yellow-800",
+      icon: "⚠️",
+    },
   };
 
   const style = styles[flash.type] || styles.success;

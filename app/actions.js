@@ -21,7 +21,18 @@ async function getAuth() {
   return session;
 }
 
-// ─── Students ────────────────────────────────────────────────────────────────
+async function getAuthUser() {
+  const session = await getAuth();
+  const userResult = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, session.email));
+  const user = userResult[0];
+  if (!user) redirect("/login");
+  return user;
+}
+
+// ─── Students ─────────────────────────────────────────────────────────────────
 
 const studentSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -46,7 +57,7 @@ const studentSchema = z.object({
 });
 
 export async function addStudent(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   const raw = {
     name: formData.get("name"),
@@ -85,6 +96,7 @@ export async function addStudent(formData) {
       ? new Date(parsed.data.admission_date)
       : new Date(),
     fee_status: "pending",
+    user_id: user.id,
   });
 
   await setFlash("success", "Student added successfully!");
@@ -92,8 +104,14 @@ export async function addStudent(formData) {
 }
 
 export async function updateStudent(formData) {
-  await getAuth();
+  const user = await getAuthUser();
   const id = formData.get("id");
+
+  const studentCheck = await db
+    .select()
+    .from(schema.students)
+    .where(and(eq(schema.students.id, Number(id)), eq(schema.students.user_id, user.id)));
+  if (!studentCheck.length) redirect("/students");
 
   const updateData = {
     name: formData.get("name"),
@@ -101,8 +119,8 @@ export async function updateStudent(formData) {
     course: formData.get("course"),
     semester: formData.get("semester") || null,
     roll_number: formData.get("roll_number"),
-    father_name: formData.get("father_name") || null,
-    phone: formData.get("phone") || null,
+    father_name: formData.get("father_name") || undefined,
+    phone: formData.get("phone") || undefined,
     fee_status: formData.get("fee_status"),
     admission_no: formData.get("admission_no") || null,
     gender: formData.get("gender") || null,
@@ -123,38 +141,14 @@ export async function updateStudent(formData) {
   await db
     .update(schema.students)
     .set(updateData)
-    .where(eq(schema.students.id, Number(id)));
+    .where(and(eq(schema.students.id, Number(id)), eq(schema.students.user_id, user.id)));
 
   await setFlash("success", "Student updated successfully!");
   redirect(`/students/${id}`);
 }
 
-export async function deleteStudent(formData) {
-  await getAuth();
-  const id = parseInt(formData.get("id"));
-
-  await db.delete(schema.fees).where(eq(schema.fees.student_id, id));
-  await db
-    .delete(schema.attendance)
-    .where(eq(schema.attendance.student_id, id));
-  await db.delete(schema.results).where(eq(schema.results.student_id, id));
-  await db
-    .delete(schema.exam_forms)
-    .where(eq(schema.exam_forms.student_id, id));
-  await db
-    .delete(schema.certificates)
-    .where(eq(schema.certificates.student_id, id));
-  await db
-    .delete(schema.fee_concessions)
-    .where(eq(schema.fee_concessions.student_id, id));
-  await db.delete(schema.students).where(eq(schema.students.id, id));
-
-  await setFlash("success", "Student deleted successfully!");
-  redirect("/students");
-}
-
 export async function importStudents(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   const csvText = formData.get("csv_data");
   if (!csvText) {
@@ -190,6 +184,7 @@ export async function importStudents(formData) {
         roll_number: roll_number || null,
         phone: phone || null,
         fee_status: "pending",
+        user_id: user.id,
       });
       count++;
     } catch {
@@ -202,7 +197,7 @@ export async function importStudents(formData) {
 }
 
 export async function promoteStudents(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   const from_semester = formData.get("from_semester");
   const to_semester = formData.get("to_semester");
@@ -218,19 +213,21 @@ export async function promoteStudents(formData) {
       academic_year: new_academic_year,
       fee_status: "pending",
     })
-    .where(eq(schema.students.semester, from_semester));
+    .where(
+      and(
+        eq(schema.students.semester, from_semester),
+        eq(schema.students.user_id, user.id),
+      ),
+    );
 
-  await setFlash(
-    "success",
-    `Semester ${from_semester} → Semester ${to_semester} promoted!`,
-  );
+  await setFlash("success", `Semester ${from_semester} → Semester ${to_semester} promoted!`);
   redirect("/promote");
 }
 
 // ─── Professors ───────────────────────────────────────────────────────────────
 
 export async function addProfessor(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   await db.insert(schema.professors).values({
     name: formData.get("name"),
@@ -239,6 +236,7 @@ export async function addProfessor(formData) {
     phone: formData.get("phone") || null,
     email: formData.get("email") || null,
     pin: formData.get("pin"),
+    user_id: user.id,
   });
 
   await setFlash("success", "Professor added successfully!");
@@ -246,8 +244,14 @@ export async function addProfessor(formData) {
 }
 
 export async function updateProfessor(formData) {
-  await getAuth();
+  const user = await getAuthUser();
   const id = parseInt(formData.get("id"));
+
+  const professorCheck = await db
+    .select()
+    .from(schema.professors)
+    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, user.id)));
+  if (!professorCheck.length) redirect("/professors");
 
   await db
     .update(schema.professors)
@@ -258,15 +262,21 @@ export async function updateProfessor(formData) {
       phone: formData.get("phone") || null,
       email: formData.get("email") || null,
     })
-    .where(eq(schema.professors.id, id));
+    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, user.id)));
 
   await setFlash("success", "Professor updated successfully!");
   redirect(`/professors/${id}`);
 }
 
 export async function deleteProfessor(formData) {
-  await getAuth();
+  const user = await getAuthUser();
   const id = parseInt(formData.get("id"));
+
+  const professorCheck = await db
+    .select()
+    .from(schema.professors)
+    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, user.id)));
+  if (!professorCheck.length) redirect("/professors");
 
   await db
     .delete(schema.professor_subjects)
@@ -278,7 +288,7 @@ export async function deleteProfessor(formData) {
 }
 
 export async function addProfessorSubject(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   const professor_id = parseInt(formData.get("professor_id"));
   const subject = formData.get("subject");
@@ -288,16 +298,20 @@ export async function addProfessorSubject(formData) {
   if (!professor_id || !subject || !course)
     redirect(`/professors/${professor_id}`);
 
-  await db
-    .insert(schema.professor_subjects)
-    .values({ professor_id, subject, course, semester });
+  await db.insert(schema.professor_subjects).values({
+    professor_id,
+    subject,
+    course,
+    semester,
+    user_id: user.id,
+  });
 
   await setFlash("success", "Subject assigned successfully!");
   redirect(`/professors/${professor_id}`);
 }
 
 export async function deleteProfessorSubject(formData) {
-  await getAuth();
+  const user = await getAuthUser();
   const id = parseInt(formData.get("id"));
 
   const result = await db
@@ -305,6 +319,12 @@ export async function deleteProfessorSubject(formData) {
     .from(schema.professor_subjects)
     .where(eq(schema.professor_subjects.id, id));
   const professor_id = result[0]?.professor_id;
+
+  const professorCheck = await db
+    .select()
+    .from(schema.professors)
+    .where(and(eq(schema.professors.id, professor_id), eq(schema.professors.user_id, user.id)));
+  if (!professorCheck.length) redirect(`/professors/${professor_id}`);
 
   await db
     .delete(schema.professor_subjects)
@@ -328,7 +348,7 @@ const paymentSchema = z.object({
 });
 
 export async function addPayment(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   const raw = {
     student_id: formData.get("student_id"),
@@ -365,33 +385,15 @@ export async function addPayment(formData) {
     academic_year: parsed.data.academic_year || null,
     month: parsed.data.month || null,
     receipt_no: parsed.data.receipt_no || null,
+    user_id: user.id,
   });
-
-  if (paidDate) {
-    const insertedFee = await db
-      .select()
-      .from(schema.fees)
-      .where(eq(schema.fees.student_id, parseInt(parsed.data.student_id)))
-      .orderBy(schema.fees.id);
-    const lastFee = insertedFee[insertedFee.length - 1];
-    if (lastFee) {
-      await db.insert(schema.fee_payments).values({
-        fee_id: lastFee.id,
-        student_id: parseInt(parsed.data.student_id),
-        amount: net_amount,
-        payment_mode: formData.get("payment_mode") || "cash",
-        paid_date: new Date(paidDate),
-        receipt_no: parsed.data.receipt_no || null,
-      });
-    }
-  }
 
   await setFlash("success", "Fee record saved successfully!");
   redirect("/fees");
 }
 
 export async function markFeePaid(formData) {
-  await getAuth();
+  await getAuthUser();
   const fee_id = parseInt(formData.get("fee_id"));
   const paid_date = formData.get("paid_date");
   const receipt_no = formData.get("receipt_no") || null;
@@ -414,21 +416,13 @@ export async function markFeePaid(formData) {
       paid_amount: newPaidAmount,
     })
     .where(eq(schema.fees.id, fee_id));
-  await db.insert(schema.fee_payments).values({
-    fee_id,
-    student_id: fee.student_id,
-    amount: paid_amount,
-    payment_mode: formData.get("payment_mode") || "cash",
-    paid_date: new Date(paid_date),
-    receipt_no,
-  });
 
   await setFlash("success", "Fee marked as paid!");
   redirect(`/fees/${fee_id}/receipt`);
 }
 
 export async function addFeeStructure(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   const course = formData.get("course");
   const fee_type = formData.get("fee_type");
@@ -437,28 +431,33 @@ export async function addFeeStructure(formData) {
 
   if (!course || !fee_type || !amount) redirect("/fee-structure/add");
 
-  await db
-    .insert(schema.fee_structures)
-    .values({ course, fee_type, amount, academic_year });
+  await db.insert(schema.fee_structures).values({
+    user_id: user.id,
+    course,
+    fee_type,
+    amount,
+    academic_year,
+    created_at: new Date(),
+  });
 
   await setFlash("success", "Fee structure saved!");
   redirect("/fee-structure");
 }
 
 export async function deleteFeeStructure(formData) {
-  await getAuth();
+  const user = await getAuthUser();
   const id = parseInt(formData.get("id"));
 
   await db
     .delete(schema.fee_structures)
-    .where(eq(schema.fee_structures.id, id));
+    .where(and(eq(schema.fee_structures.id, id), eq(schema.fee_structures.user_id, user.id)));
 
   await setFlash("success", "Fee structure deleted!");
   redirect("/fee-structure");
 }
 
 export async function addConcession(formData) {
-  await getAuth();
+  const user = await getAuthUser();
   const student_id = parseInt(formData.get("student_id"));
   const reason = formData.get("reason") || null;
   const discount_type = formData.get("discount_type");
@@ -466,22 +465,27 @@ export async function addConcession(formData) {
 
   if (!student_id || !discount_value) redirect(`/students/${student_id}`);
 
-  await db
-    .insert(schema.fee_concessions)
-    .values({ student_id, reason, discount_type, discount_value });
+  await db.insert(schema.fee_concessions).values({
+    student_id,
+    reason,
+    discount_type,
+    discount_value,
+    user_id: user.id,
+    created_at: new Date(),
+  });
 
   await setFlash("success", "Concession added!");
   redirect(`/students/${student_id}`);
 }
 
 export async function deleteConcession(formData) {
-  await getAuth();
+  const user = await getAuthUser();
   const id = parseInt(formData.get("id"));
   const student_id = parseInt(formData.get("student_id"));
 
   await db
     .delete(schema.fee_concessions)
-    .where(eq(schema.fee_concessions.id, id));
+    .where(and(eq(schema.fee_concessions.id, id), eq(schema.fee_concessions.student_id, student_id)));
 
   await setFlash("success", "Concession removed!");
   redirect(`/students/${student_id}`);
@@ -494,6 +498,25 @@ export async function saveAttendance(formData) {
   const adminToken = cookieStore.get("session")?.value;
   const professorToken = cookieStore.get("professor_session")?.value;
   if (!adminToken && !professorToken) redirect("/login");
+
+  let userId = null;
+  if (adminToken) {
+    const session = await getSession(adminToken);
+    if (!session) redirect("/login");
+    const userResult = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.email, session.email));
+    userId = userResult[0]?.id;
+  } else if (professorToken) {
+    const professorSession = await getSession(professorToken);
+    if (!professorSession) redirect("/professor-login");
+    const professorResult = await db
+      .select()
+      .from(schema.professors)
+      .where(eq(schema.professors.id, professorSession.professorId));
+    userId = professorResult[0]?.user_id;
+  }
 
   const date = formData.get("date");
   const studentIds = formData.getAll("student_id");
@@ -519,26 +542,27 @@ export async function saveAttendance(formData) {
           and(
             eq(schema.attendance.student_id, parseInt(id)),
             eq(schema.attendance.date, date),
+            eq(schema.attendance.user_id, userId),
           ),
         );
     } else {
-      await db
-        .insert(schema.attendance)
-        .values({ student_id: parseInt(id), date, status });
+      await db.insert(schema.attendance).values({
+        student_id: parseInt(id),
+        date,
+        status,
+        user_id: userId,
+      });
     }
   }
 
   await setFlash("success", "Attendance saved!");
-  if (professorToken) {
-    redirect("/professor-attendance");
-  }
   redirect("/attendance");
 }
 
 // ─── Exams ────────────────────────────────────────────────────────────────────
 
 export async function createExam(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   await db.insert(schema.exams).values({
     name: formData.get("name"),
@@ -550,6 +574,7 @@ export async function createExam(formData) {
     max_marks: parseInt(formData.get("max_marks")),
     passing_marks: parseInt(formData.get("passing_marks")),
     academic_year: formData.get("academic_year") || null,
+    user_id: user.id,
   });
 
   await setFlash("success", "Exam scheduled successfully!");
@@ -557,7 +582,7 @@ export async function createExam(formData) {
 }
 
 export async function saveResults(formData) {
-  await getAuth();
+  const user = await getAuthUser();
   const exam_id = parseInt(formData.get("exam_id"));
   const studentIds = formData.getAll("student_id");
 
@@ -593,6 +618,7 @@ export async function saveResults(formData) {
           and(
             eq(schema.results.exam_id, exam_id),
             eq(schema.results.student_id, parseInt(sid)),
+            eq(schema.results.user_id, user.id),
           ),
         );
     } else {
@@ -602,6 +628,7 @@ export async function saveResults(formData) {
         marks_obtained: marksNum,
         grade,
         remarks,
+        user_id: user.id,
       });
     }
   }
@@ -613,7 +640,7 @@ export async function saveResults(formData) {
 // ─── Exam Forms ───────────────────────────────────────────────────────────────
 
 export async function addExamForm(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   const student_id = parseInt(formData.get("student_id"));
   const academic_year = formData.get("academic_year");
@@ -629,6 +656,7 @@ export async function addExamForm(formData) {
     exam_fee_paid,
     form_status: exam_fee_paid ? "approved" : "pending",
     submitted_date: new Date().toISOString().split("T")[0],
+    user_id: user.id,
   });
 
   await setFlash("success", "Exam form submitted!");
@@ -636,7 +664,7 @@ export async function addExamForm(formData) {
 }
 
 export async function updateExamFormStatus(formData) {
-  await getAuth();
+  const user = await getAuthUser();
   const id = parseInt(formData.get("id"));
   const form_status = formData.get("form_status");
   const exam_fee_paid = formData.get("exam_fee_paid") === "1" ? 1 : 0;
@@ -644,7 +672,7 @@ export async function updateExamFormStatus(formData) {
   await db
     .update(schema.exam_forms)
     .set({ form_status, exam_fee_paid })
-    .where(eq(schema.exam_forms.id, id));
+    .where(and(eq(schema.exam_forms.id, id), eq(schema.exam_forms.user_id, user.id)));
 
   await setFlash("success", "Exam form updated!");
   redirect("/exam-forms");
@@ -653,33 +681,24 @@ export async function updateExamFormStatus(formData) {
 // ─── Notices ──────────────────────────────────────────────────────────────────
 
 export async function createNotice(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   await db.insert(schema.notices).values({
     title: formData.get("title"),
     content: formData.get("content"),
     category: formData.get("category"),
     priority: formData.get("priority"),
+    user_id: user.id,
   });
 
   await setFlash("success", "Notice posted successfully!");
   redirect("/notices");
 }
 
-export async function deleteNotice(formData) {
-  await getAuth();
-  const id = parseInt(formData.get("id"));
-
-  await db.delete(schema.notices).where(eq(schema.notices.id, id));
-
-  await setFlash("success", "Notice deleted!");
-  redirect("/notices");
-}
-
 // ─── Timetable ────────────────────────────────────────────────────────────────
 
 export async function addPeriod(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   const course = formData.get("course");
 
@@ -692,6 +711,7 @@ export async function addPeriod(formData) {
     professor_name: formData.get("professor_name") || null,
     start_time: formData.get("start_time"),
     end_time: formData.get("end_time"),
+    user_id: user.id,
   });
 
   await setFlash("success", "Period added successfully!");
@@ -701,7 +721,7 @@ export async function addPeriod(formData) {
 // ─── Certificates ─────────────────────────────────────────────────────────────
 
 export async function issueCertificate(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
   await db.insert(schema.certificates).values({
     student_id: parseInt(formData.get("student_id")),
@@ -713,19 +733,10 @@ export async function issueCertificate(formData) {
     last_exam_passed: formData.get("last_exam_passed") || null,
     conduct: formData.get("conduct") || "Good",
     custom_content: formData.get("custom_content") || null,
+    user_id: user.id,
   });
 
   await setFlash("success", "Certificate issued successfully!");
-  redirect("/certificates");
-}
-
-export async function deleteCertificate(formData) {
-  await getAuth();
-  const id = parseInt(formData.get("id"));
-
-  await db.delete(schema.certificates).where(eq(schema.certificates.id, id));
-
-  await setFlash("success", "Certificate deleted!");
   redirect("/certificates");
 }
 
@@ -736,16 +747,19 @@ const settingsSchema = z.object({
   university_name: z.string().optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().optional(),
+  email: z.string().email("Invalid email").optional(),
   principal_name: z.string().optional(),
   affiliation_no: z.string().optional(),
   college_code: z.string().optional(),
 });
 
 export async function saveSettings(formData) {
-  await getAuth();
+  const user = await getAuthUser();
 
-  const existing = await db.select().from(schema.college_settings).limit(1);
+  const existing = await db
+    .select()
+    .from(schema.college_settings)
+    .where(eq(schema.college_settings.user_id, user.id));
   const current = existing[0] || {};
 
   let logo_url = current.logo_url || null;
@@ -784,17 +798,46 @@ export async function saveSettings(formData) {
     redirect("/settings");
   }
 
-  const data = { ...parsed.data, logo_url, updated_at: new Date() };
+  const data = {
+    user_id: user.id,
+    ...parsed.data,
+    logo_url,
+    updated_at: new Date(),
+  };
 
   if (existing.length > 0) {
     await db
       .update(schema.college_settings)
       .set(data)
-      .where(eq(schema.college_settings.id, current.id));
+      .where(eq(schema.college_settings.user_id, user.id));
   } else {
     await db.insert(schema.college_settings).values(data);
   }
 
   await setFlash("success", "Settings saved successfully!");
   redirect("/settings");
+}
+
+// ─── Delete Student ───────────────────────────────────────────────────────────
+
+export async function deleteStudent(formData) {
+  const user = await getAuthUser();
+  const id = parseInt(formData.get("id"));
+
+  const studentCheck = await db
+    .select()
+    .from(schema.students)
+    .where(and(eq(schema.students.id, id), eq(schema.students.user_id, user.id)));
+  if (!studentCheck.length) redirect("/students");
+
+  await db.delete(schema.fees).where(eq(schema.fees.student_id, id));
+  await db.delete(schema.attendance).where(eq(schema.attendance.student_id, id));
+  await db.delete(schema.results).where(eq(schema.results.student_id, id));
+  await db.delete(schema.exam_forms).where(eq(schema.exam_forms.student_id, id));
+  await db.delete(schema.certificates).where(eq(schema.certificates.student_id, id));
+  await db.delete(schema.fee_concessions).where(eq(schema.fee_concessions.student_id, id));
+  await db.delete(schema.students).where(eq(schema.students.id, id));
+
+  await setFlash("success", "Student deleted successfully!");
+  redirect("/students");
 }

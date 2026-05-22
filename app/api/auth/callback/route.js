@@ -1,5 +1,8 @@
 import { google } from "@/lib/auth";
 import { createSession } from "@/lib/session";
+import { db } from "@/lib/db";
+import { users } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
@@ -24,36 +27,79 @@ export async function GET(request) {
   const storedState = cookieStore.get("oauth_state")?.value;
   const codeVerifier = cookieStore.get("code_verifier")?.value;
 
+  // ✅ Fix 2: !state भी check करो
   if (!code || !state || state !== storedState) {
     return NextResponse.redirect(new URL("/login?error=invalid", request.url));
   }
 
+  // ✅ Fix 1: पूरा logic try/catch में
   try {
     const tokens = await google.validateAuthorizationCode(code, codeVerifier);
     const accessToken = tokens.accessToken();
 
     const googleRes = await fetch(
       "https://www.googleapis.com/oauth2/v2/userinfo",
-      { headers: { Authorization: `Bearer ${accessToken}` } },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
     );
     const googleUser = await googleRes.json();
     if (!googleUser.email) {
-      return NextResponse.redirect(new URL("/login?error=invalid", request.url));
+      return NextResponse.redirect(
+        new URL("/login?error=invalid", request.url),
+      );
     }
 
-    const allowedEmails = (process.env.DEVELOPER_EMAIL || "")
-      .split(",")
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean);
+    let existing = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, googleUser.email));
+    let user;
 
-    const userEmail = googleUser.email.toLowerCase();
+    if (existing.length === 0) {
+      // नया user — trial पर insert करो
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + 7);
 
-    if (!allowedEmails.includes(userEmail)) {
-      return NextResponse.redirect(new URL("/login?error=unauthorized", request.url));
+      await db.insert(users).values({
+        email: googleUser.email,
+        name: googleUser.name || "",
+        status: "trial",
+        expiry_date: expiry.toISOString(),
+        reminder_sent: 0,
+      });
+
+      existing = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, googleUser.email));
     }
 
-    const token = await createSession(googleUser.email, googleUser.name || "");
-    return redirectWithCookie(request, "/dashboard", token);
+    user = existing[0];
+
+    const token = await createSession(
+      user.id,
+      user.email,
+      user.name,
+      user.status,
+      user.expiry_date,
+    );
+
+    if (user.email === process.env.DEVELOPER_EMAIL) {
+      return redirectWithCookie(request, "/dashboard", token);
+    }
+    if (user.status === "active") {
+      return redirectWithCookie(request, "/dashboard", token);
+    }
+
+    const now = new Date();
+    const expiryDate = user.expiry_date ? new Date(user.expiry_date) : null;
+
+    if (user.status === "trial" && expiryDate && now < expiryDate) {
+      return redirectWithCookie(request, "/dashboard", token);
+    }
+
+    return redirectWithCookie(request, "/expired", token);
   } catch (e) {
     console.error(e);
     return NextResponse.redirect(new URL("/login?error=failed", request.url));
