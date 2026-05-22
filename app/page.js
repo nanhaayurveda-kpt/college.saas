@@ -4,9 +4,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 
-const COLLEGE_EXE_URL =
-  "https://github.com/kp1153/college-saas/releases/download/v1.0.0/Nishant.PG.College.Setup.0.1.0.exe";
-
 const features = [
   {
     icon: "🎓",
@@ -61,7 +58,7 @@ const features = [
   {
     icon: "📱",
     title: "मोबाइल और डेस्कटॉप",
-    desc: "मोबाइल पर Android app की तरह और कंप्यूटर पर Windows application की तरह चलता है। एक खरीद — दोनों पर काम।",
+    desc: "मोबाइल पर Android app की तरह और कंप्यूटर पर Windows application की तरह चलता है।",
   },
 ];
 
@@ -110,12 +107,6 @@ export default async function HomePage() {
             >
               🎓 स्टूडेंट  लॉगिन
             </Link>
-            <a
-              href={COLLEGE_EXE_URL}
-              className="bg-gray-800 text-white px-8 py-3 rounded-lg hover:bg-gray-700 font-medium text-sm shadow-sm"
-            >
-              🖥️ Windows App डाउनलोड करें
-            </a>
           </div>
           <p className="text-xs text-gray-400 mt-3">
             Android पर install करें: Chrome → ⋮ → होम स्क्रीन पर जोड़ें
@@ -128,7 +119,7 @@ export default async function HomePage() {
             क्या-क्या मिलता है?
           </h2>
           <p className="text-center text-gray-400 text-sm mb-8">
-            {features.length} सुविधाएं — एक सॉफ्टवेयर, एक कीमत
+            {features.length} सुविधाएं — एक सॉफ्टवेयर
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {features.map((f, i) => (
@@ -145,63 +136,6 @@ export default async function HomePage() {
                 </p>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Pricing */}
-        <div className="mb-14">
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">
-            मूल्य
-          </h2>
-          <p className="text-center text-gray-400 text-sm mb-8">
-            ७ दिन बिल्कुल मुफ्त — कोई कार्ड नहीं चाहिए
-          </p>
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <div className="rounded-2xl border-2 border-indigo-600 p-6 text-center shadow-lg relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-sm font-bold px-4 py-1 rounded-full">
-                नया खाता
-              </div>
-              <h3 className="text-xl font-bold mb-1 text-gray-700 mt-2">
-                पहला वर्ष
-              </h3>
-              <div className="text-5xl font-extrabold text-indigo-600 mb-1">
-                ₹4,999
-              </div>
-              <p className="text-gray-400 text-sm mb-4">
-                एकमुश्त — १ साल शामिल
-              </p>
-              <Link
-                href="/login"
-                className="block w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition mb-3 text-sm"
-              >
-                ७ दिन मुफ्त आज़माएं
-              </Link>
-              <a
-                href="https://nishantsoftwares.in/college"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-700 transition text-sm"
-              >
-                💳 अभी खरीदें — ₹4,999
-              </a>
-            </div>
-            <div className="rounded-2xl border-2 border-gray-200 p-6 text-center shadow-sm">
-              <h3 className="text-xl font-bold mb-1 text-gray-700 mt-2">
-                नवीनीकरण
-              </h3>
-              <div className="text-5xl font-extrabold text-indigo-600 mb-1">
-                ₹2,500
-              </div>
-              <p className="text-gray-400 text-sm mb-4">प्रति वर्ष</p>
-              <a
-                href="https://nishantsoftwares.in/college"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition text-sm"
-              >
-                💳 नवीनीकरण करें
-              </a>
-            </div>
           </div>
         </div>
 
