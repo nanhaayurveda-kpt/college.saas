@@ -5,10 +5,7 @@ import { professors, users } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
-import { updateProfessor } from "@/app/actions";
-
-export default async function EditProfessorPage({ params }) {
+import { getSession } from "@/lib/session";export default async function EditProfessorPage({ params }) {
   const { id } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
@@ -26,7 +23,7 @@ export default async function EditProfessorPage({ params }) {
   const result = await db
     .select()
     .from(professors)
-    .where(and(eq(professors.id, Number(id)), eq(professors.user_id, user.id)));
+    .where(and(eq(professors.id, Number(id)), eq(professors.user_id, 1)));
   if (result.length === 0) notFound();
   const p = result[0];
 

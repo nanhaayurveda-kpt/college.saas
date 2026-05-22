@@ -19,7 +19,7 @@ export default async function ReportsPage() {
       db
         .select({ course: students.course, count: sql`COUNT(*)` })
         .from(students)
-        .where(eq(students.user_id, user.id))
+        .where(eq(students.user_id, 1))
         .groupBy(students.course)
         .orderBy(students.course),
 
@@ -33,7 +33,7 @@ export default async function ReportsPage() {
         })
         .from(fees)
         .leftJoin(students, eq(fees.student_id, students.id))
-        .where(eq(students.user_id, user.id))
+        .where(eq(students.user_id, 1))
         .groupBy(students.course)
         .orderBy(students.course),
 
@@ -45,7 +45,7 @@ export default async function ReportsPage() {
         })
         .from(attendance)
         .leftJoin(students, eq(attendance.student_id, students.id))
-        .where(eq(students.user_id, user.id))
+        .where(eq(students.user_id, 1))
         .groupBy(students.course)
         .orderBy(students.course),
 
@@ -65,7 +65,7 @@ export default async function ReportsPage() {
         })
         .from(exams)
         .leftJoin(results, eq(results.exam_id, exams.id))
-        .where(eq(exams.user_id, user.id))
+        .where(eq(exams.user_id, 1))
         .groupBy(exams.id)
         .orderBy(sql`${exams.exam_date} DESC`),
     ]);

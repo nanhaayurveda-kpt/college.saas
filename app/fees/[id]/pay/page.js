@@ -5,10 +5,7 @@ import { fees, students, users } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
-import { markFeePaid } from "@/app/actions";
-
-export default async function PayFeePage({ params }) {
+import { getSession } from "@/lib/session";export default async function PayFeePage({ params }) {
   const { id } = await params;
 
   const cookieStore = await cookies();
@@ -41,7 +38,7 @@ export default async function PayFeePage({ params }) {
     })
     .from(fees)
     .leftJoin(students, eq(fees.student_id, students.id))
-    .where(and(eq(fees.id, parseInt(id)), eq(fees.user_id, user.id)));
+    .where(and(eq(fees.id, parseInt(id)), eq(fees.user_id, 1)));
 
   if (result.length === 0) notFound();
   const fee = result[0];

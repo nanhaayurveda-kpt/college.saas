@@ -10,13 +10,13 @@ import { z } from "zod";
 
 const settingsSchema = z.object({
   college_name: z.string().min(1, "College name is required"),
+  university_name: z.string().optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().optional(),
   principal_name: z.string().optional(),
   affiliation_no: z.string().optional(),
   college_code: z.string().optional(),
-  upi_id: z.string().optional(),
 });
 
 async function uploadToCloudinary(file) {
@@ -35,7 +35,6 @@ async function uploadToCloudinary(file) {
 }
 
 export async function POST(request) {
-  // ─── Auth ──────────────────────────────────────────────────────────────
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) {
@@ -55,39 +54,29 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
   }
 
-  // ─── Get existing settings ─────────────────────────────────────────────
   const existing = await db
     .select()
     .from(schema.college_settings)
-    .where(eq(schema.college_settings.user_id, user.id));
+    .where(eq(schema.college_settings.user_id, 1));
   const current = existing[0] || {};
 
-  // ─── Parse form ────────────────────────────────────────────────────────
   const formData = await request.formData();
 
-  // ─── Handle file uploads (logo and QR code) ────────────────────────────
+  // Handle logo upload only (schema has no qr_code_url)
   const logoFile = formData.get("logo");
-  const qrFile = formData.get("qr_code");
-
   let logo_url = current.logo_url || null;
-  let qr_code_url = current.qr_code_url || null;
-
   const uploadedLogo = await uploadToCloudinary(logoFile);
   if (uploadedLogo) logo_url = uploadedLogo;
 
-  const uploadedQr = await uploadToCloudinary(qrFile);
-  if (uploadedQr) qr_code_url = uploadedQr;
-
-  // ─── Validate fields ───────────────────────────────────────────────────
   const raw = {
     college_name: formData.get("college_name"),
+    university_name: formData.get("university_name") || undefined,
     address: formData.get("address") || undefined,
     phone: formData.get("phone") || undefined,
     email: formData.get("email") || undefined,
     principal_name: formData.get("principal_name") || undefined,
     affiliation_no: formData.get("affiliation_no") || undefined,
     college_code: formData.get("college_code") || undefined,
-    upi_id: formData.get("upi_id") || undefined,
   };
 
   const parsed = settingsSchema.safeParse(raw);
@@ -100,21 +89,17 @@ export async function POST(request) {
   }
 
   const data = {
-    user_id: user.id,
+    user_id: 1,
     ...parsed.data,
     logo_url,
-    qr_code_url,
     updated_at: new Date(),
   };
 
-  // ─── UPDATE existing OR INSERT new (idempotent) ────────────────────────
-  // Since settings are per-user, retry will always go through UPDATE path
-  // after first save — this is naturally retry-safe.
   if (existing.length > 0) {
     await db
       .update(schema.college_settings)
       .set(data)
-      .where(eq(schema.college_settings.user_id, user.id));
+      .where(eq(schema.college_settings.user_id, 1));
   } else {
     await db.insert(schema.college_settings).values(data);
   }

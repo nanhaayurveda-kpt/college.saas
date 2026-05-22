@@ -35,14 +35,14 @@ export async function POST(request) {
   const examResult = await db
     .select()
     .from(exams)
-    .where(and(eq(exams.id, examId), eq(exams.user_id, user.id)));
+    .where(and(eq(exams.id, examId), eq(exams.user_id, 1)));
   if (examResult.length === 0) {
     return NextResponse.redirect(new URL("/exams", request.url), 303);
   }
 
   // Delete child rows first (results), then exam
   await db.delete(results).where(eq(results.exam_id, examId));
-  await db.delete(exams).where(and(eq(exams.id, examId), eq(exams.user_id, user.id)));
+  await db.delete(exams).where(and(eq(exams.id, examId), eq(exams.user_id, 1)));
 
   return NextResponse.redirect(new URL("/exams", request.url), 303);
 }

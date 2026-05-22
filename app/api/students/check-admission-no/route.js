@@ -39,7 +39,7 @@ export async function GET(request) {
 
   // ─── Build conditions ──────────────────────────────────────────────────
   const conditions = [
-    eq(schema.students.user_id, user.id),
+    eq(schema.students.user_id, 1),
     eq(schema.students.admission_no, admissionNo),
   ];
 

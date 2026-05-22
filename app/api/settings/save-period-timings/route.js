@@ -41,7 +41,7 @@ export async function POST(request) {
   // Per-user data, full replacement on every save
   await db
     .delete(schema.period_timings)
-    .where(eq(schema.period_timings.user_id, user.id));
+    .where(eq(schema.period_timings.user_id, 1));
 
   const rows = [];
   for (let i = 1; i <= totalPeriods; i++) {
@@ -50,7 +50,7 @@ export async function POST(request) {
     const label = formData.get(`label_${i}`) || "teaching";
     if (!start || !end) continue;
     rows.push({
-      user_id: user.id,
+      user_id: 1,
       period_no: i,
       start_time: start,
       end_time: end,

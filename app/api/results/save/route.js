@@ -52,7 +52,7 @@ export async function POST(request) {
         and(
           eq(results.exam_id, exam_id),
           eq(results.student_id, parseInt(sid)),
-          eq(results.user_id, user.id),
+          eq(results.user_id, 1),
         ),
       );
 
@@ -64,7 +64,7 @@ export async function POST(request) {
           and(
             eq(results.exam_id, exam_id),
             eq(results.student_id, parseInt(sid)),
-            eq(results.user_id, user.id),
+            eq(results.user_id, 1),
           ),
         );
     } else {
@@ -74,7 +74,7 @@ export async function POST(request) {
         marks_obtained: marksNum,
         grade,
         remarks,
-        user_id: user.id,
+        user_id: 1,
       });
     }
   }

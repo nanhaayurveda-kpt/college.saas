@@ -5,10 +5,7 @@ import { students, users } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";
-import { addExamForm } from "@/app/actions";
-
-export default async function AddExamFormPage() {
+import { redirect } from "next/navigation";export default async function AddExamFormPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) redirect("/login");
@@ -24,7 +21,7 @@ export default async function AddExamFormPage() {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, user.id))
+    .where(eq(students.user_id, 1))
     .orderBy(students.name);
 
   const now = new Date();
@@ -44,7 +41,7 @@ export default async function AddExamFormPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 max-w-md">
-        <form action={addExamForm} className="space-y-4">
+        <form method="POST" action="/api/exam-forms/add" className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Student <span className="text-red-500">*</span>

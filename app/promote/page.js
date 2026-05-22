@@ -5,10 +5,7 @@ import { students, users } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";
-import { promoteStudents } from "@/app/actions";
-
-export default async function PromotePage() {
+import { redirect } from "next/navigation";export default async function PromotePage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) redirect("/login");
@@ -25,7 +22,7 @@ export default async function PromotePage() {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, user.id));
+    .where(eq(students.user_id, 1));
 
   const semesters = ["1", "2", "3", "4", "5", "6"];
 

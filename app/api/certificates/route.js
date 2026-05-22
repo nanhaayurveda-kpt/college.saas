@@ -28,12 +28,12 @@ export async function GET(request) {
     rows = await db.select().from(certificates).where(
       and(
         eq(certificates.student_id, Number(studentId)),
-        eq(certificates.user_id, user.id)
+        eq(certificates.user_id, 1)
       )
     );
   } else {
     rows = await db.select().from(certificates).where(
-      eq(certificates.user_id, user.id)
+      eq(certificates.user_id, 1)
     );
   }
 
@@ -71,7 +71,7 @@ export async function POST(request) {
     last_exam_passed: last_exam_passed || null,
     conduct: conduct || "Good",
     custom_content: custom_content || null,
-    user_id: user.id,
+    user_id: 1,
   });
 
   return Response.json({ success: true });

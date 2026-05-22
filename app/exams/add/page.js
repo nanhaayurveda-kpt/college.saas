@@ -1,7 +1,4 @@
-export const dynamic = "force-dynamic";
-
-import { createExam } from "@/app/actions";
-import { COURSES } from "@/lib/courses";
+export const dynamic = "force-dynamic";import { COURSES } from "@/lib/courses";
 
 export default async function AddExamPage() {
   const courses = COURSES;

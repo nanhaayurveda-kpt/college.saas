@@ -27,7 +27,7 @@ export default async function EditStudentPage({ params }) {
   const result = await db
     .select()
     .from(students)
-    .where(and(eq(students.id, Number(id)), eq(students.user_id, user.id)));
+    .where(and(eq(students.id, Number(id)), eq(students.user_id, 1)));
   if (result.length === 0) notFound();
   const s = result[0];
 

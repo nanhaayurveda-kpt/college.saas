@@ -1,4 +1,3 @@
-import { importStudents } from "@/app/actions";
 import { COURSES, FACULTIES } from "@/lib/courses";
 
 export default function ImportPage() {

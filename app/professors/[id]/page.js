@@ -7,7 +7,6 @@ import { eq, and } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
-import { addProfessorSubject, deleteProfessorSubject } from "@/app/actions";
 
 const designationLabel = {
   assistant: "Assistant Professor",
@@ -45,14 +44,19 @@ export default async function ProfessorDetailPage({ params }) {
   const result = await db
     .select()
     .from(professors)
-    .where(and(eq(professors.id, Number(id)), eq(professors.user_id, user.id)));
+    .where(and(eq(professors.id, Number(id)), eq(professors.user_id, 1)));
   if (result.length === 0) notFound();
   const p = result[0];
 
   const subjects = await db
     .select()
     .from(professor_subjects)
-    .where(eq(professor_subjects.professor_id, Number(id)));
+    .where(
+      and(
+        eq(professor_subjects.professor_id, Number(id)),
+        eq(professor_subjects.user_id, 1),
+      ),
+    );
 
   return (
     <div>
@@ -141,7 +145,11 @@ export default async function ProfessorDetailPage({ params }) {
                 className="flex items-center gap-1 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-xs font-medium"
               >
                 {s.subject} — {s.course} {s.semester ? `Sem ${s.semester}` : ""}
-                <form method="POST" action="/api/professors/delete-subject" className="inline">
+                <form
+                  method="POST"
+                  action="/api/professors/delete-subject"
+                  className="inline"
+                >
                   <input type="hidden" name="id" value={s.id} />
                   <button type="submit" className="text-red-400 ml-1 font-bold">
                     ×
@@ -158,7 +166,11 @@ export default async function ProfessorDetailPage({ params }) {
       {/* Assign Subject */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
         <h2 className="text-sm font-bold text-gray-900 mb-3">Assign Subject</h2>
-        <form method="POST" action="/api/professors/add-subject" className="space-y-3">
+        <form
+          method="POST"
+          action="/api/professors/add-subject"
+          className="space-y-3"
+        >
           <input type="hidden" name="professor_id" value={p.id} />
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">

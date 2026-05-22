@@ -5,8 +5,6 @@ import { students, fee_concessions } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { deleteStudent, addConcession, deleteConcession } from "@/app/actions";
-
 export default async function StudentDetailPage({ params }) {
   const { id } = await params;
   const cookieStore = await cookies();
@@ -25,7 +23,7 @@ export default async function StudentDetailPage({ params }) {
   const result = await db
     .select()
     .from(students)
-    .where(and(eq(students.id, Number(id)), eq(students.user_id, user.id)));
+    .where(and(eq(students.id, Number(id)), eq(students.user_id, 1)));
   if (result.length === 0) notFound();
   const s = result[0];
 

@@ -6,9 +6,7 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { users } from "@/lib/schema";
-import { eq } from "drizzle-orm";
-import { addPeriod } from "@/app/actions";
-import { COURSES } from "@/lib/courses";
+import { eq } from "drizzle-orm";import { COURSES } from "@/lib/courses";
 
 export default async function AddPeriodPage({ searchParams }) {
   const cookieStore = await cookies();
@@ -37,7 +35,7 @@ export default async function AddPeriodPage({ searchParams }) {
   const allProfessors = await db
     .select()
     .from(professors)
-    .where(eq(professors.user_id, user.id));
+    .where(eq(professors.user_id, 1));
 
   return (
     <div>

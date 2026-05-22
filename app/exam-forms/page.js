@@ -6,10 +6,7 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";
-import { updateExamFormStatus } from "@/app/actions";
-
-export default async function ExamFormsPage({ searchParams }) {
+import { redirect } from "next/navigation";export default async function ExamFormsPage({ searchParams }) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) redirect("/login");
@@ -41,7 +38,7 @@ export default async function ExamFormsPage({ searchParams }) {
     })
     .from(exam_forms)
     .leftJoin(students, eq(exam_forms.student_id, students.id))
-    .where(eq(exam_forms.user_id, user.id))
+    .where(eq(exam_forms.user_id, 1))
     .orderBy(exam_forms.submitted_date);
 
   const filtered = filterStatus
@@ -171,7 +168,10 @@ export default async function ExamFormsPage({ searchParams }) {
                 <div className="ml-3 shrink-0 flex flex-col gap-1 items-end">
                   {form.form_status === "pending" && (
                     <>
-                      <form action={updateExamFormStatus}>
+                      <form
+                        method="POST"
+                        action="/api/exam-forms/update-status"
+                      >
                         <input type="hidden" name="id" value={form.id} />
                         <input
                           type="hidden"
@@ -190,7 +190,10 @@ export default async function ExamFormsPage({ searchParams }) {
                           ✓ Approve
                         </button>
                       </form>
-                      <form action={updateExamFormStatus}>
+                      <form
+                        method="POST"
+                        action="/api/exam-forms/update-status"
+                      >
                         <input type="hidden" name="id" value={form.id} />
                         <input
                           type="hidden"
@@ -212,7 +215,7 @@ export default async function ExamFormsPage({ searchParams }) {
                     </>
                   )}
                   {form.form_status !== "pending" && (
-                    <form action={updateExamFormStatus}>
+                    <form method="POST" action="/api/exam-forms/update-status">
                       <input type="hidden" name="id" value={form.id} />
                       <input type="hidden" name="form_status" value="pending" />
                       <input

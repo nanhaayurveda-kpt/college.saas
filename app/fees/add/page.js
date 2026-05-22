@@ -23,18 +23,18 @@ export default async function AddFeePage() {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, user.id))
+    .where(eq(students.user_id, 1))
     .orderBy(students.name);
 
   const feeStructures = await db
     .select()
     .from(fee_structures)
-    .where(eq(fee_structures.user_id, user.id));
+    .where(eq(fee_structures.user_id, 1));
 
   const allConcessions = await db
     .select()
     .from(fee_concessions)
-    .where(eq(fee_concessions.user_id, user.id));
+    .where(eq(fee_concessions.user_id, 1));
   const studentIds = allStudents.map((s) => s.id);
   const concessions = allConcessions.filter((c) =>
     studentIds.includes(c.student_id),

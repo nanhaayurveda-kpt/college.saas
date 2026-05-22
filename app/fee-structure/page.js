@@ -1,5 +1,3 @@
-import { addFeeStructure } from "@/app/actions";
-
 export default async function AddFeeStructurePage() {
   const courses = [
     "B.A.", "M.A.",

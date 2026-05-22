@@ -51,7 +51,7 @@ export async function POST(request) {
     .from(schema.students)
     .where(
       and(
-        eq(schema.students.user_id, user.id),
+        eq(schema.students.user_id, 1),
         eq(schema.students.faculty, faculty),
         eq(schema.students.course, course),
         eq(schema.students.semester, semester),
@@ -100,7 +100,7 @@ export async function POST(request) {
       roll_number: roll_number || null,
       phone: phone || null,
       fee_status: "pending",
-      user_id: user.id,
+      user_id: 1,
     });
     inserted++;
   }

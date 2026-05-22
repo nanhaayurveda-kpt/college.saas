@@ -5,10 +5,7 @@ import { college_settings, users } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { cookies } from "next/headers";
-import { saveSettings } from "@/app/actions";
-
-export default async function SettingsPage() {
+import { cookies } from "next/headers";export default async function SettingsPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) redirect("/login");
@@ -23,7 +20,7 @@ export default async function SettingsPage() {
   const result = await db
     .select()
     .from(college_settings)
-    .where(eq(college_settings.user_id, user.id));
+    .where(eq(college_settings.user_id, 1));
   const s = result[0] || {};
 
   return (

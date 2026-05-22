@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import { db } from "@/lib/db";
 import { students } from "@/lib/schema";
 import Link from "next/link";
-import { deleteStudent } from "@/app/actions";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
@@ -27,7 +26,7 @@ export default async function StudentsPage({ searchParams }) {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, user.id));
+    .where(eq(students.user_id, 1));
 
   const faculties = [...new Set(allStudents.map((s) => s.faculty))].sort();
   const years = [

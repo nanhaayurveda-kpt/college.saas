@@ -34,7 +34,7 @@ export default async function FeesPage({ searchParams }) {
     })
     .from(fees)
     .leftJoin(students, eq(fees.student_id, students.id))
-    .where(eq(students.user_id, user.id))
+    .where(eq(students.user_id, 1))
     .orderBy(fees.due_date);
 
   const summary = {

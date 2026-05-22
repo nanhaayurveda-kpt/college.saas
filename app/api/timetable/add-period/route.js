@@ -8,7 +8,6 @@ import { getSession } from "@/lib/session";
 import { setFlash } from "@/lib/flash";
 
 export async function POST(request) {
-  // ─── Auth ──────────────────────────────────────────────────────────────
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) {
@@ -28,14 +27,11 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
   }
 
-  // ─── Parse form ────────────────────────────────────────────────────────
   const formData = await request.formData();
-  const faculty = formData.get("faculty");
   const course = formData.get("course");
   const semester = formData.get("semester") || null;
   const day = formData.get("day");
-  const periodRaw = formData.get("period");
-  const period = parseInt(periodRaw, 10);
+  const period = parseInt(formData.get("period"), 10);
   const subject = formData.get("subject");
   const professor_name = formData.get("professor_name");
   const start_time = formData.get("start_time");
@@ -46,18 +42,19 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/timetable/add", request.url), { status: 303 });
   }
 
-  // ─── Duplicate check: same course + semester + day + period already taken? ─
-  const conditions = [
-    eq(schema.timetable.user_id, user.id),
-    eq(schema.timetable.course, course),
-    eq(schema.timetable.semester, semester || ""),
-    eq(schema.timetable.day, day),
-    eq(schema.timetable.period, period),
-  ];
+  // Duplicate check: same course + semester + day + period already taken?
   const existing = await db
     .select()
     .from(schema.timetable)
-    .where(and(...conditions));
+    .where(
+      and(
+        eq(schema.timetable.user_id, 1),
+        eq(schema.timetable.course, course),
+        eq(schema.timetable.semester, semester || ""),
+        eq(schema.timetable.day, day),
+        eq(schema.timetable.period, period),
+      ),
+    );
   if (existing.length > 0) {
     await setFlash(
       "error",
@@ -66,9 +63,7 @@ export async function POST(request) {
     return NextResponse.redirect(new URL(`/timetable?course=${course}`, request.url), { status: 303 });
   }
 
-  // ─── Insert ────────────────────────────────────────────────────────────
   await db.insert(schema.timetable).values({
-    faculty: faculty || "",
     course,
     semester,
     day,
@@ -77,7 +72,7 @@ export async function POST(request) {
     professor_name: professor_name || null,
     start_time: start_time || "00:00",
     end_time: end_time || "00:00",
-    user_id: user.id,
+    user_id: 1,
   });
 
   await setFlash("success", "Period added successfully!");

@@ -48,25 +48,25 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     db.select({ count: sql`COUNT(*)` })
       .from(students)
-      .where(eq(students.user_id, user.id)),
+      .where(eq(students.user_id, 1)),
 
     db.select({ count: sql`COUNT(*)` })
       .from(professors)
-      .where(eq(professors.user_id, user.id)),
+      .where(eq(professors.user_id, 1)),
 
     db.select({ total: sql`SUM(amount)`, count: sql`COUNT(*)` })
       .from(fees)
-      .where(and(sql`status = 'pending'`, eq(fees.user_id, user.id))),
+      .where(and(sql`status = 'pending'`, eq(fees.user_id, 1))),
 
     db.select({ total: sql`SUM(amount)` })
       .from(fees)
-      .where(and(sql`status = 'paid'`, eq(fees.user_id, user.id))),
+      .where(and(sql`status = 'paid'`, eq(fees.user_id, 1))),
 
     db.select({ count: sql`COUNT(*)` })
       .from(attendance)
       .where(
         and(
-          eq(attendance.user_id, user.id),
+          eq(attendance.user_id, 1),
           sql`date = ${today} AND status = 'present'`,
         ),
       ),
@@ -75,42 +75,42 @@ export default async function DashboardPage() {
       .from(attendance)
       .where(
         and(
-          eq(attendance.user_id, user.id),
+          eq(attendance.user_id, 1),
           sql`date = ${today} AND status = 'absent'`,
         ),
       ),
 
     db.select({ count: sql`COUNT(*)` })
       .from(exams)
-      .where(eq(exams.user_id, user.id)),
+      .where(eq(exams.user_id, 1)),
 
     db.select({ count: sql`COUNT(*)` })
       .from(notices)
-      .where(eq(notices.user_id, user.id)),
+      .where(eq(notices.user_id, 1)),
 
     db.select({ count: sql`COUNT(*)` })
       .from(exam_forms)
-      .where(and(sql`form_status = 'pending'`, eq(exam_forms.user_id, user.id))),
+      .where(and(sql`form_status = 'pending'`, eq(exam_forms.user_id, 1))),
 
     db.select({ faculty: students.faculty })
       .from(students)
-      .where(eq(students.user_id, user.id)),
+      .where(eq(students.user_id, 1)),
 
     db.select()
       .from(notices)
-      .where(eq(notices.user_id, user.id))
+      .where(eq(notices.user_id, 1))
       .orderBy(sql`created_at DESC`)
       .limit(3),
 
     db.select()
       .from(exams)
-      .where(and(sql`exam_date >= ${today}`, eq(exams.user_id, user.id)))
+      .where(and(sql`exam_date >= ${today}`, eq(exams.user_id, 1)))
       .orderBy(sql`exam_date ASC`)
       .limit(3),
 
     db.select()
       .from(college_settings)
-      .where(eq(college_settings.user_id, user.id)),
+      .where(eq(college_settings.user_id, 1)),
   ]);
 
   const settings = settingsRows[0] || null;

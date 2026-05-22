@@ -1,4 +1,3 @@
-import { addFeeStructure } from "@/app/actions";
 import { COURSES } from "@/lib/courses";
 
 export default async function AddFeeStructurePage() {

@@ -47,7 +47,7 @@ export async function POST(request) {
     .where(
       and(
         eq(schema.students.id, student_id),
-        eq(schema.students.user_id, user.id),
+        eq(schema.students.user_id, 1),
       ),
     );
   if (!studentCheck.length) {
@@ -60,7 +60,7 @@ export async function POST(request) {
     .from(schema.exam_forms)
     .where(
       and(
-        eq(schema.exam_forms.user_id, user.id),
+        eq(schema.exam_forms.user_id, 1),
         eq(schema.exam_forms.student_id, student_id),
         eq(schema.exam_forms.academic_year, academic_year),
         eq(schema.exam_forms.semester, semester),
@@ -82,7 +82,7 @@ export async function POST(request) {
     exam_fee_paid,
     form_status: exam_fee_paid ? "approved" : "pending",
     submitted_date: new Date().toISOString().split("T")[0],
-    user_id: user.id,
+    user_id: 1,
   });
 
   await setFlash("success", "Exam form submitted!");

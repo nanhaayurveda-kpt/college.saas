@@ -1,4 +1,4 @@
-// app/api/fee-structure/delete/route.js
+// app/api/exam-forms/update-status/route.js
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
@@ -29,20 +29,23 @@ export async function POST(request) {
 
   const formData = await request.formData();
   const id = parseInt(formData.get("id"), 10);
+  const form_status = formData.get("form_status");
+  const exam_fee_paid = formData.get("exam_fee_paid") === "1" ? 1 : 0;
+
   if (isNaN(id)) {
-    return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
+    return NextResponse.redirect(new URL("/exam-forms", request.url), { status: 303 });
   }
 
-  // Ownership-scoped delete
   await db
-    .delete(schema.fee_structures)
+    .update(schema.exam_forms)
+    .set({ form_status, exam_fee_paid })
     .where(
       and(
-        eq(schema.fee_structures.id, id),
-        eq(schema.fee_structures.user_id, 1),
+        eq(schema.exam_forms.id, id),
+        eq(schema.exam_forms.user_id, 1),
       ),
     );
 
-  await setFlash("success", "Fee structure deleted!");
-  return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
+  await setFlash("success", "Exam form updated!");
+  return NextResponse.redirect(new URL("/exam-forms", request.url), { status: 303 });
 }

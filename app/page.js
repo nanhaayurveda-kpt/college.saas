@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 
+const COLLEGE_EXE_URL =
+  "https://github.com/kp1153/college-saas/releases/download/v1.0.0/Nishant.PG.College.Setup.0.1.0.exe";
+
 const features = [
   {
     icon: "🎓",
@@ -58,7 +61,7 @@ const features = [
   {
     icon: "📱",
     title: "मोबाइल और डेस्कटॉप",
-    desc: "मोबाइल पर Android app की तरह और कंप्यूटर पर Windows application की तरह चलता है।",
+    desc: "मोबाइल पर Android app की तरह और कंप्यूटर पर Windows application की तरह चलता है। एक खरीद — दोनों पर काम।",
   },
 ];
 
@@ -71,7 +74,6 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white">
       <div className="max-w-5xl mx-auto px-4 py-12">
-
         {/* Hero */}
         <div className="text-center mb-14">
           <div className="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium mb-5">
@@ -80,10 +82,13 @@ export default async function HomePage() {
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             कॉलेज की हर ज़रूरत
             <br />
-            <span className="text-indigo-600">एक सॉफ्टवेयर में — मोबाइल पर</span>
+            <span className="text-indigo-600">
+              एक सॉफ्टवेयर में — मोबाइल पर
+            </span>
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-3">
-            स्टूडेंट  · फीस · उपस्थिति · परीक्षा · प्रमाण पत्र · परीक्षा फॉर्म — सब एक जगह।
+            स्टूडेंट · फीस · उपस्थिति · परीक्षा · प्रमाण पत्र · परीक्षा फॉर्म —
+            सब एक जगह।
           </p>
           <p className="text-sm text-indigo-600 font-medium mb-8">
             NAAC accreditation के लिए ज़रूरी सभी रिकॉर्ड डिजिटल रखें।
@@ -105,8 +110,14 @@ export default async function HomePage() {
               href="/student/login"
               className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 font-medium text-sm shadow-sm"
             >
-              🎓 स्टूडेंट  लॉगिन
+              🎓 स्टूडेंट लॉगिन
             </Link>
+            <a
+              href={COLLEGE_EXE_URL}
+              className="bg-gray-800 text-white px-8 py-3 rounded-lg hover:bg-gray-700 font-medium text-sm shadow-sm"
+            >
+              🖥️ Windows App डाउनलोड करें
+            </a>
           </div>
           <p className="text-xs text-gray-400 mt-3">
             Android पर install करें: Chrome → ⋮ → होम स्क्रीन पर जोड़ें
@@ -119,7 +130,7 @@ export default async function HomePage() {
             क्या-क्या मिलता है?
           </h2>
           <p className="text-center text-gray-400 text-sm mb-8">
-            {features.length} सुविधाएं — एक सॉफ्टवेयर
+            {features.length} सुविधाएं — एक सॉफ्टवेयर, एक कीमत
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {features.map((f, i) => (
@@ -141,7 +152,9 @@ export default async function HomePage() {
 
         {/* CTA */}
         <div className="text-center bg-indigo-900 rounded-2xl p-10 text-white">
-          <h2 className="text-2xl font-bold mb-2">आज ही शुरू करें — ७ दिन मुफ्त</h2>
+          <h2 className="text-2xl font-bold mb-2">
+            आज ही शुरू करें — ७ दिन मुफ्त
+          </h2>
           <p className="text-indigo-300 mb-6 text-sm">
             कोई कार्ड नहीं। कोई setup शुल्क नहीं। सीधे developer से सहायता।
           </p>
@@ -167,7 +180,6 @@ export default async function HomePage() {
             </a>
           </div>
         </div>
-
       </div>
     </div>
   );

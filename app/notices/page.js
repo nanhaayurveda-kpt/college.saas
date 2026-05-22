@@ -22,7 +22,7 @@ export default async function NoticesPage() {
   const allNotices = await db
     .select()
     .from(notices)
-    .where(eq(notices.user_id, user.id))
+    .where(eq(notices.user_id, 1))
     .orderBy(desc(notices.created_at));
 
   return (

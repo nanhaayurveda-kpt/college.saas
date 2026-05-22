@@ -57,7 +57,7 @@ export async function POST(request) {
   // ─── Duplicate check 2: same name + phone in this user's professors ────
   if (phone) {
     const conditions = [
-      eq(schema.professors.user_id, user.id),
+      eq(schema.professors.user_id, 1),
       eq(schema.professors.name, name),
       eq(schema.professors.phone, phone),
     ];
@@ -81,7 +81,7 @@ export async function POST(request) {
     phone,
     email,
     pin,
-    user_id: user.id,
+    user_id: 1,
   });
 
   await setFlash("success", "Professor added successfully!");

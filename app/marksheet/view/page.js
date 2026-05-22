@@ -38,14 +38,14 @@ export default async function MarksheetViewPage({ searchParams }) {
   const settingsRows = await db
     .select()
     .from(college_settings)
-    .where(eq(college_settings.user_id, user.id));
+    .where(eq(college_settings.user_id, 1));
   const college = settingsRows[0] || {};
 
   const courseStudents = await db
     .select()
     .from(students)
     .where(
-      and(eq(students.course, selectedCourse), eq(students.user_id, user.id)),
+      and(eq(students.course, selectedCourse), eq(students.user_id, 1)),
     )
     .orderBy(students.roll_number, students.name);
 
@@ -71,7 +71,7 @@ export default async function MarksheetViewPage({ searchParams }) {
   const conditions = [
     eq(exams.course, selectedCourse),
     eq(exams.exam_type, selectedType),
-    eq(exams.user_id, user.id),
+    eq(exams.user_id, 1),
   ];
   if (selectedYear) conditions.push(eq(exams.academic_year, selectedYear));
 

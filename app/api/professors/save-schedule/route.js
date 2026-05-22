@@ -8,7 +8,6 @@ import { getSession } from "@/lib/session";
 import { setFlash } from "@/lib/flash";
 
 export async function POST(request) {
-  // ─── Auth ──────────────────────────────────────────────────────────────
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) {
@@ -28,23 +27,20 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
   }
 
-  // ─── Parse form ────────────────────────────────────────────────────────
   const formData = await request.formData();
-  const professorIdRaw = formData.get("professor_id");
-  const professorId = parseInt(professorIdRaw, 10);
+  const professorId = parseInt(formData.get("professor_id"), 10);
   if (isNaN(professorId)) {
     await setFlash("error", "Invalid professor");
     return NextResponse.redirect(new URL("/professors", request.url), { status: 303 });
   }
 
-  // ─── Ownership check ───────────────────────────────────────────────────
   const professorResult = await db
     .select()
     .from(schema.professors)
     .where(
       and(
         eq(schema.professors.id, professorId),
-        eq(schema.professors.user_id, user.id),
+        eq(schema.professors.user_id, 1),
       ),
     );
   const professor = professorResult[0];
@@ -53,8 +49,7 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/professors", request.url), { status: 303 });
   }
 
-  const totalPeriodsRaw = formData.get("total_periods");
-  const totalPeriods = parseInt(totalPeriodsRaw, 10);
+  const totalPeriods = parseInt(formData.get("total_periods"), 10);
   if (isNaN(totalPeriods) || totalPeriods < 1) {
     await setFlash("error", "Invalid periods count");
     return NextResponse.redirect(
@@ -63,22 +58,22 @@ export async function POST(request) {
     );
   }
 
-  // ─── Fetch period timings for this user ────────────────────────────────
+  // Fetch period timings for this user
   const timings = await db
     .select()
     .from(schema.period_timings)
-    .where(eq(schema.period_timings.user_id, user.id));
+    .where(eq(schema.period_timings.user_id, 1));
   const timingMap = {};
   timings.forEach((t) => {
     timingMap[t.period_no] = { start: t.start_time, end: t.end_time };
   });
 
-  // ─── Delete existing periods for this professor (idempotent re-save) ────
+  // Delete existing periods for this professor (idempotent re-save)
   await db
     .delete(schema.timetable)
     .where(
       and(
-        eq(schema.timetable.user_id, user.id),
+        eq(schema.timetable.user_id, 1),
         eq(schema.timetable.professor_name, professor.name),
       ),
     );
@@ -94,7 +89,6 @@ export async function POST(request) {
 
   const getPeriodData = (day, p) => ({
     subject: formData.get(`subject_${day}_${p}`),
-    faculty: formData.get(`faculty_${day}_${p}`),
     course: formData.get(`course_${day}_${p}`),
     semester: formData.get(`semester_${day}_${p}`),
   });
@@ -102,22 +96,19 @@ export async function POST(request) {
   const buildDayRows = (sourceDay, targetDay) => {
     const rows = [];
     for (let p = 1; p <= totalPeriods; p++) {
-      const { subject, faculty, course, semester } = getPeriodData(sourceDay, p);
+      const { subject, course, semester } = getPeriodData(sourceDay, p);
       if (!subject || !course) continue;
       const timing = timingMap[p];
-      const startTime = timing?.start || "00:00";
-      const endTime = timing?.end || "00:00";
       rows.push({
-        user_id: user.id,
-        faculty: faculty || "",
+        user_id: 1,
         course,
         semester: semester || null,
         day: targetDay,
         period: p,
         subject,
         professor_name: professor.name,
-        start_time: startTime,
-        end_time: endTime,
+        start_time: timing?.start || "00:00",
+        end_time: timing?.end || "00:00",
       });
     }
     return rows;
@@ -128,8 +119,7 @@ export async function POST(request) {
     const sameAsMonday = formData.get(`same_${day}`) === "1";
     const sourceDay =
       day === "Monday" ? "Monday" : sameAsMonday ? "Monday" : day;
-    const dayRows = buildDayRows(sourceDay, day);
-    allRows.push(...dayRows);
+    allRows.push(...buildDayRows(sourceDay, day));
   }
 
   if (allRows.length > 0) {

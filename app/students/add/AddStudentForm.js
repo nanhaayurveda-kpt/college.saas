@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { addStudent } from "@/app/actions";
-
-export default function AddStudentForm({ faculties, courses, semesters, today }) {
+import { useState } from "react";export default function AddStudentForm({ faculties, courses, semesters, today }) {
   const [photoUrl, setPhotoUrl] = useState("");
   const [photoPreview, setPhotoPreview] = useState("");
   const [uploading, setUploading] = useState(false);

@@ -1,8 +1,4 @@
-'use client'
-
-import { saveAttendance } from '@/app/actions'
-
-export default function AttendanceForm({ students, selectedDate, attendanceMap, sortedKeys, grouped }) {
+'use client'export default function AttendanceForm({ students, selectedDate, attendanceMap, sortedKeys, grouped }) {
   function markAll(checked) {
     document.querySelectorAll('input[name="present"]').forEach(cb => cb.checked = checked);
   }

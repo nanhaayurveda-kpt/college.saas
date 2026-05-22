@@ -5,10 +5,7 @@ import { students, users } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";
-import { issueCertificate } from "@/app/actions";
-
-export default async function IssueCertificatePage({ searchParams }) {
+import { redirect } from "next/navigation";export default async function IssueCertificatePage({ searchParams }) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) redirect("/login");
@@ -31,14 +28,14 @@ export default async function IssueCertificatePage({ searchParams }) {
         .where(
           and(
             eq(students.course, selectedCourse),
-            eq(students.user_id, user.id),
+            eq(students.user_id, 1),
           ),
         )
         .orderBy(students.name)
     : await db
         .select()
         .from(students)
-        .where(eq(students.user_id, user.id))
+        .where(eq(students.user_id, 1))
         .orderBy(students.name);
 
   const today = new Date().toISOString().split("T")[0];

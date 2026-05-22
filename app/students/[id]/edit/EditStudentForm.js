@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { updateStudent } from "@/app/actions";
-
-export default function EditStudentForm({ s, faculties, courses, semesters }) {
+import { useState } from "react";export default function EditStudentForm({ s, faculties, courses, semesters }) {
   const [photoUrl, setPhotoUrl] = useState(s.photo_url || "");
   const [photoPreview, setPhotoPreview] = useState(s.photo_url || "");
   const [uploading, setUploading] = useState(false);

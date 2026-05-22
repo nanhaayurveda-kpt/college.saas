@@ -1,5 +1,3 @@
-import { addProfessor } from "@/app/actions";
-
 export default function AddProfessorPage() {
   return (
     <div>

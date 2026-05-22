@@ -24,7 +24,7 @@ export default async function AdmissionsPage() {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, user.id))
+    .where(eq(students.user_id, 1))
     .orderBy(desc(students.admission_date));
 
   const now = new Date();

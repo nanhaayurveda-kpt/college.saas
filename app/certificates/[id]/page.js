@@ -56,7 +56,7 @@ export default async function CertificatePrintPage({ params }) {
     })
     .from(certificates)
     .leftJoin(students, eq(certificates.student_id, students.id))
-    .where(and(eq(certificates.id, Number(id)), eq(certificates.user_id, user.id)));
+    .where(and(eq(certificates.id, Number(id)), eq(certificates.user_id, 1)));
 
   if (rows.length === 0) notFound();
   const cert = rows[0];
@@ -64,7 +64,7 @@ export default async function CertificatePrintPage({ params }) {
   const settingsRows = await db
     .select()
     .from(college_settings)
-    .where(eq(college_settings.user_id, user.id));
+    .where(eq(college_settings.user_id, 1));
   const college = settingsRows[0] || {};
 
   const title = CERT_TITLES[cert.cert_type] || "CERTIFICATE";

@@ -1,10 +1,7 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { notices } from "@/lib/schema";
-import { setFlash } from "@/lib/flash";
-import { createNotice } from '@/app/actions'
-
-export default function AddNoticePage() {
+import { setFlash } from "@/lib/flash";export default function AddNoticePage() {
   return (
     <div>
       <div className="mb-8">
