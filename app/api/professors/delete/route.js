@@ -1,4 +1,3 @@
-// app/api/professors/delete/route.js
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
@@ -36,16 +35,14 @@ export async function POST(request) {
   const professorCheck = await db
     .select()
     .from(schema.professors)
-    .where(
-      and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)),
-    );
+    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)));
   if (!professorCheck.length) {
     return NextResponse.redirect(new URL("/professors", request.url), { status: 303 });
   }
 
-  await db
-    .delete(schema.professor_subjects)
-    .where(eq(schema.professor_subjects.professor_id, id));
+  await db.delete(schema.professor_subjects).where(eq(schema.professor_subjects.professor_id, id));
+  await db.delete(schema.professor_attendance).where(eq(schema.professor_attendance.professor_id, id));
+  await db.delete(schema.assignments).where(eq(schema.assignments.professor_id, id));
   await db.delete(schema.professors).where(eq(schema.professors.id, id));
 
   await setFlash("success", "Professor deleted successfully!");

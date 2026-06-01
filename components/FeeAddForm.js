@@ -120,6 +120,7 @@ export default function FeeAddForm({ allStudents, feeStructures, concessions, to
             <option value="lab">Lab Fee</option>
             <option value="hostel">Hostel Fee</option>
             <option value="misc">Miscellaneous</option>
+            <option value="late">Late Payment Fine</option>
           </select>
         </div>
       </div>

@@ -136,6 +136,12 @@ export async function POST(request) {
   const paidDate = parsed.data.paid_date || null;
 
   // ─── Insert fee row ────────────────────────────────────────────────────
+  // Auto-generate receipt number: RCP-YYYYMMDD-XXXX
+  const now = new Date();
+  const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  const randPart = Math.floor(1000 + Math.random() * 9000);
+  const receiptNo = parsed.data.receipt_no || `RCP-${datePart}-${randPart}`;
+
   await db.insert(schema.fees).values({
     student_id: studentId,
     amount: net_amount,
@@ -146,7 +152,7 @@ export async function POST(request) {
     fee_type: feeType,
     academic_year: academicYear,
     month: month,
-    receipt_no: parsed.data.receipt_no || null,
+    receipt_no: receiptNo,
     user_id: 1,
   });
 
@@ -177,7 +183,7 @@ export async function POST(request) {
         amount: net_amount,
         payment_mode: formData.get("payment_mode") || "cash",
         paid_date: new Date(paidDate),
-        receipt_no: parsed.data.receipt_no || null,
+        receipt_no: receiptNo,
       });
     }
   }
