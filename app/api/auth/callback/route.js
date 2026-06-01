@@ -27,12 +27,10 @@ export async function GET(request) {
   const storedState = cookieStore.get("oauth_state")?.value;
   const codeVerifier = cookieStore.get("code_verifier")?.value;
 
-  // ✅ Fix 2: !state भी check करो
   if (!code || !state || state !== storedState) {
     return NextResponse.redirect(new URL("/login?error=invalid", request.url));
   }
 
-  // ✅ Fix 1: पूरा logic try/catch में
   try {
     const tokens = await google.validateAuthorizationCode(code, codeVerifier);
     const accessToken = tokens.accessToken();
@@ -50,21 +48,39 @@ export async function GET(request) {
       );
     }
 
+    // ✅ Email whitelist — सिर्फ DEVELOPER_EMAIL में listed emails login कर सकें
+    // (developer + admins, comma-separated)
+    const allowedEmails = (process.env.DEVELOPER_EMAIL || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    const userEmail = googleUser.email.toLowerCase();
+
+    if (!allowedEmails.includes(userEmail)) {
+      return NextResponse.redirect(
+        new URL("/login?error=unauthorized", request.url),
+      );
+    }
+
+    // ✅ Single-tenant: चाहे कोई भी admin login करे, सब MASTER row से जुड़ें।
+    // Master = पहली allowed email (developer)। सब उसी user_id=1 पर काम करेंगे।
+    const masterEmail = allowedEmails[0];
+
     let existing = await db
       .select()
       .from(users)
-      .where(eq(users.email, googleUser.email));
-    let user;
+      .where(eq(users.email, masterEmail));
 
     if (existing.length === 0) {
-      // नया user — trial पर insert करो
+      // पहली बार — master row बनाओ (यह developer का पहला login होगा)
       const expiry = new Date();
-      expiry.setDate(expiry.getDate() + 7);
+      expiry.setDate(expiry.getDate() + 3650); // 10 साल — single-tenant, no trial
 
       await db.insert(users).values({
-        email: googleUser.email,
+        email: masterEmail,
         name: googleUser.name || "",
-        status: "trial",
+        status: "active",
         expiry_date: expiry.toISOString(),
         reminder_sent: 0,
       });
@@ -72,10 +88,10 @@ export async function GET(request) {
       existing = await db
         .select()
         .from(users)
-        .where(eq(users.email, googleUser.email));
+        .where(eq(users.email, masterEmail));
     }
 
-    user = existing[0];
+    const user = existing[0];
 
     const token = await createSession(
       user.id,
@@ -85,21 +101,8 @@ export async function GET(request) {
       user.expiry_date,
     );
 
-    if (user.email === process.env.DEVELOPER_EMAIL) {
-      return redirectWithCookie(request, "/dashboard", token);
-    }
-    if (user.status === "active") {
-      return redirectWithCookie(request, "/dashboard", token);
-    }
-
-    const now = new Date();
-    const expiryDate = user.expiry_date ? new Date(user.expiry_date) : null;
-
-    if (user.status === "trial" && expiryDate && now < expiryDate) {
-      return redirectWithCookie(request, "/dashboard", token);
-    }
-
-    return redirectWithCookie(request, "/expired", token);
+    // Single-tenant — सब allowed admins सीधे dashboard (कोई expiry/trial नहीं)
+    return redirectWithCookie(request, "/dashboard", token);
   } catch (e) {
     console.error(e);
     return NextResponse.redirect(new URL("/login?error=failed", request.url));
