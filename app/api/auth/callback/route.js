@@ -47,10 +47,7 @@ export async function GET(request) {
         new URL("/login?error=invalid", request.url),
       );
     }
-
-    // ✅ Email whitelist — सिर्फ DEVELOPER_EMAIL में listed emails login कर सकें
-    // (developer + admins, comma-separated)
-    const allowedEmails = (process.env.DEVELOPER_EMAIL || "")
+    const allowedEmails = (process.env.ALLOWED_EMAILS || "")
       .split(",")
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
