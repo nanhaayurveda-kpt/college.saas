@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";export default function AddStudentForm({ faculties, courses, semesters, today }) {
+import { useState } from "react";
+
+export default function AddStudentForm({ faculties, courses, semesters, today }) {
   const [photoUrl, setPhotoUrl] = useState("");
   const [photoPreview, setPhotoPreview] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -92,7 +94,7 @@ import { useState } from "react";export default function AddStudentForm({ facul
               <select name="semester" required defaultValue=""
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Select...</option>
-                {semesters.map((s) => <option key={s} value={s}>Semester {s}</option>)}
+                {semesters.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
@@ -107,21 +109,24 @@ import { useState } from "react";export default function AddStudentForm({ facul
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Scholar No. (Oblique No.)
-              </label>
-              <input type="text" name="admission_no"
+              <label className="block text-sm font-medium text-gray-700 mb-1">Scholar No.</label>
+              <input type="text" name="scholar_no"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
           </div>
 
-          {/* PEN */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              PEN (Permanent Education Number)
-            </label>
-            <input type="text" name="pen" placeholder="11-digit PEN"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          {/* Enrolment No + PEN */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Enrolment No.</label>
+              <input type="text" name="enrolment_no"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">PEN</label>
+              <input type="text" name="pen" placeholder="11-digit PEN"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
           </div>
 
           {/* Admission Date + Academic Year */}
@@ -222,7 +227,6 @@ import { useState } from "react";export default function AddStudentForm({ facul
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-3 pt-2">
             <button type="submit"
               className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 text-sm font-medium">

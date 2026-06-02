@@ -107,7 +107,15 @@ export default async function StudentDetailPage({ params }) {
               Scholar No.
             </p>
             <p className="text-sm font-medium text-gray-900">
-              {s.admission_no || "—"}
+              {s.scholar_no || "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 uppercase font-medium mb-0.5">
+              Enrolment No.
+            </p>
+            <p className="text-sm font-medium text-gray-900">
+              {s.enrolment_no || "—"}
             </p>
           </div>
           <div>

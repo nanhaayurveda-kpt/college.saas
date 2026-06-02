@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";export default function EditStudentForm({ s, faculties, courses, semesters }) {
+import { useState } from "react";
+
+export default function EditStudentForm({ s, faculties, courses, semesters }) {
   const [photoUrl, setPhotoUrl] = useState(s.photo_url || "");
   const [photoPreview, setPhotoPreview] = useState(s.photo_url || "");
   const [uploading, setUploading] = useState(false);
@@ -85,7 +87,7 @@ import { useState } from "react";export default function EditStudentForm({ s, f
               <select name="semester" required defaultValue={s.semester || ""}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Select...</option>
-                {semesters.map((sem) => <option key={sem} value={sem}>Semester {sem}</option>)}
+                {semesters.map((sem) => <option key={sem} value={sem}>{sem}</option>)}
               </select>
             </div>
           </div>
@@ -99,16 +101,23 @@ import { useState } from "react";export default function EditStudentForm({ s, f
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Scholar No.</label>
-              <input type="text" name="admission_no" defaultValue={s.admission_no || ""}
+              <input type="text" name="scholar_no" defaultValue={s.scholar_no || ""}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
           </div>
 
-          {/* PEN */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">PEN (Permanent Education Number)</label>
-            <input type="text" name="pen" defaultValue={s.pen || ""} placeholder="11-digit PEN"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          {/* Enrolment No + PEN */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Enrolment No.</label>
+              <input type="text" name="enrolment_no" defaultValue={s.enrolment_no || ""}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">PEN</label>
+              <input type="text" name="pen" defaultValue={s.pen || ""} placeholder="11-digit PEN"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
           </div>
 
           {/* Admission Date + Academic Year */}
