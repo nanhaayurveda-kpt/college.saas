@@ -101,20 +101,6 @@ export default async function ProfessorDetailPage({ params }) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs text-gray-400 uppercase font-medium mb-0.5">
-              Full Name
-            </p>
-            <p className="text-sm font-medium text-gray-900">{p.name}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase font-medium mb-0.5">
-              Designation
-            </p>
-            <p className="text-sm font-medium text-indigo-600">
-              {designationLabel[p.designation] || p.designation}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase font-medium mb-0.5">
               Qualification
             </p>
             <p className="text-sm font-medium text-gray-900">
