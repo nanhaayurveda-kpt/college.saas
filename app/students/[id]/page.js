@@ -1,11 +1,12 @@
 export const dynamic = "force-dynamic";
 
 import { db } from "@/lib/db";
-import { students, fee_concessions } from "@/lib/schema";
-import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { students, fee_concessions, users } from "@/lib/schema";
+import { eq, and } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-export default async function StudentDetailPage({ params }) {
+import { cookies } from "next/headers";
+import { getSession } from "@/lib/session";
   const { id } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
