@@ -110,6 +110,22 @@ export default async function EditProfessorPage({ params }) {
             </div>
           </div>
           <div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  6-Digit PIN
+                </label>
+                <input
+                  type="text"
+                  name="pin"
+                  maxLength={6}
+                  minLength={6}
+                  defaultValue={p.pin || ""}
+                  placeholder="Auto from phone"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Photo
             </label>
