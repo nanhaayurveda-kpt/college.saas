@@ -39,7 +39,6 @@ export default async function FeeReceiptPage({ params }) {
       paid_date: fees.paid_date,
       status: fees.status,
       fee_type: fees.fee_type,
-      month: fees.month,
       academic_year: fees.academic_year,
       receipt_no: fees.receipt_no,
       student_name: students.name,
@@ -207,9 +206,7 @@ export default async function FeeReceiptPage({ params }) {
                   <th className="px-4 py-3 text-left text-xs font-bold text-white uppercase">
                     Description
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-white uppercase">
-                    Month
-                  </th>
+
                   <th className="px-4 py-3 text-right text-xs font-bold text-white uppercase">
                     Amount
                   </th>
@@ -220,9 +217,7 @@ export default async function FeeReceiptPage({ params }) {
                   <td className="px-4 py-3 text-sm text-gray-700">
                     {feeTypeLabel}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 text-center">
-                    {fee.month || "—"}
-                  </td>
+
                   <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
                     ₹{totalAmount}
                   </td>
