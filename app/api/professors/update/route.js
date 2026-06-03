@@ -77,7 +77,7 @@ export async function POST(request) {
   const email = formData.get("email") || null;
   const pin = formData.get("pin") || null;
   const current = professorCheck[0];
-  const current = professorCheck[0];
+
   const photo_url = formData.get("photo_url") || current.photo_url || null;
   // PIN duplicate check (PIN is globally unique)
   if (pin) {
