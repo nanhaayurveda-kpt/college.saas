@@ -209,4 +209,4 @@ export default function FeeAddForm({
       <div>
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700">
-            Custom Items <span className="text-gray-400 text-xs font-normal">(hostel, libr
+            Custom Items <span className="text-gray-400 text-xs font-normal">(hostel, library, etc.)</span>
