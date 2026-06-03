@@ -125,7 +125,12 @@ export default async function ProfessorsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-gray-900 text-sm">
-                        {prof.name}
+                        <a
+                          href={`/professors/${prof.id}`}
+                          className="font-medium text-indigo-700 hover:underline"
+                        >
+                          {prof.name}
+                        </a>
                       </p>
                       <span className="bg-indigo-50 text-indigo-600 text-xs px-2 py-0.5 rounded-full font-medium">
                         {designationLabel[prof.designation] || prof.designation}

@@ -72,6 +72,29 @@ export default async function ProfessorDetailPage({ params }) {
           ← Back
         </Link>
       </div>
+      {/* Photo + Name */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex items-center gap-4">
+        <div className="w-16 h-16 rounded-full border-2 border-indigo-100 overflow-hidden bg-gray-50 flex items-center justify-center shrink-0">
+          {p.photo_url ? (
+            <img
+              src={p.photo_url}
+              alt={p.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-3xl">👤</span>
+          )}
+        </div>
+        <div>
+          <p className="text-base font-bold text-gray-900">{p.name}</p>
+          <p className="text-xs text-indigo-600 font-medium">
+            {designationLabel[p.designation] || p.designation}
+          </p>
+          {p.phone && (
+            <p className="text-xs text-gray-500 mt-0.5">📞 {p.phone}</p>
+          )}
+        </div>
+      </div>
 
       {/* Detail Card */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
