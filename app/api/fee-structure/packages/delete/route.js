@@ -1,4 +1,3 @@
-// app/api/fee-structure/delete/route.js
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
@@ -22,14 +21,15 @@ export async function POST(request) {
   const id = parseInt(formData.get("id"), 10);
   if (isNaN(id)) return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
 
-  // items पहले delete करो
+  const ownRows = await db.select({ id: schema.fee_packages.id })
+    .from(schema.fee_packages)
+    .where(and(eq(schema.fee_packages.id, id), eq(schema.fee_packages.user_id, 1)));
+
+  if (ownRows.length === 0) return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
+
   await db.delete(schema.fee_package_items).where(eq(schema.fee_package_items.package_id, id));
+  await db.delete(schema.fee_packages).where(and(eq(schema.fee_packages.id, id), eq(schema.fee_packages.user_id, 1)));
 
-  // फिर package delete करो
-  await db.delete(schema.fee_packages).where(
-    and(eq(schema.fee_packages.id, id), eq(schema.fee_packages.user_id, 1))
-  );
-
-  await setFlash("success", "Fee package deleted!");
+  await setFlash("success", "Package deleted");
   return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
 }
