@@ -7,6 +7,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
+export default async function StudentDetailPage({ params }) {
   const { id } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
