@@ -21,8 +21,8 @@ export default function FeeAddForm({
 }) {
   const [selectedFaculty, setSelectedFaculty] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [checkedTypes, setCheckedTypes] = useState({});
-  const [amounts, setAmounts] = useState({});
+  const [selectedSemesters, setSelectedSemesters] = useState([]);
+  const [semesterItems, setSemesterItems] = useState({});
   const [customItems, setCustomItems] = useState([]);
   const [previousDues, setPreviousDues] = useState(0);
   const [paidDate, setPaidDate] = useState("");
@@ -39,46 +39,29 @@ export default function FeeAddForm({
     return allStudents.filter((s) => s.faculty === selectedFaculty);
   }, [allStudents, selectedFaculty]);
 
+  // course के सभी packages
+  const studentPackages = useMemo(() => {
+    if (!selectedStudentId) return [];
+    const student = allStudents.find((s) => s.id === selectedStudentId);
+    if (!student) return [];
+    return packages.filter((p) => p.course === student.course);
+  }, [selectedStudentId, allStudents, packages]);
+
   function loadForStudent(studentId) {
     const student = allStudents.find((s) => s.id === studentId);
     if (!student) return;
     setPreviousDues(duesMap[studentId] || 0);
-
-    const pkg = packages.find(
-      (p) =>
-        p.course === student.course &&
-        (!p.semester || p.semester === student.semester),
-    );
-
-    const newAmounts = {};
-    const newChecked = {};
-    const newCustomItems = [];
-
-    if (pkg && pkg.items && pkg.items.length > 0) {
-      for (const item of pkg.items) {
-        if (FIXED_SLUGS.has(item.fee_type)) {
-          newAmounts[item.fee_type] = String(item.amount);
-          newChecked[item.fee_type] = true;
-        } else {
-          newCustomItems.push({
-            name: item.label || item.fee_type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-            slug: item.fee_type,
-            amount: String(item.amount),
-          });
-        }
-      }
-    }
-    setAmounts(newAmounts);
-    setCheckedTypes(newChecked);
-    setCustomItems(newCustomItems);
+    setSelectedSemesters([]);
+    setSemesterItems({});
+    setCustomItems([]);
     setAmountPaidNow("");
   }
 
   function handleFacultyChange(e) {
     setSelectedFaculty(e.target.value);
     setSelectedStudentId("");
-    setAmounts({});
-    setCheckedTypes({});
+    setSelectedSemesters([]);
+    setSemesterItems({});
     setCustomItems([]);
     setPreviousDues(0);
     setAmountPaidNow("");
@@ -90,12 +73,48 @@ export default function FeeAddForm({
     loadForStudent(id);
   }
 
-  function toggleType(type) {
-    setCheckedTypes((prev) => ({ ...prev, [type]: !prev[type] }));
+  function toggleSemester(semesterVal) {
+    const pkg = packages.find(
+      (p) => p.semester === semesterVal &&
+        p.course === allStudents.find((s) => s.id === selectedStudentId)?.course
+    );
+
+    setSelectedSemesters((prev) => {
+      if (prev.includes(semesterVal)) {
+        // uncheck — items हटाओ
+        setSemesterItems((si) => {
+          const updated = { ...si };
+          delete updated[semesterVal];
+          return updated;
+        });
+        return prev.filter((s) => s !== semesterVal);
+      } else {
+        // check — package से items load करो
+        if (pkg && pkg.items) {
+          const items = {};
+          const custom = [];
+          for (const item of pkg.items) {
+            if (FIXED_SLUGS.has(item.fee_type)) {
+              items[item.fee_type] = String(item.amount);
+            } else {
+              custom.push({
+                semester: semesterVal,
+                name: item.label || item.fee_type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+                slug: item.fee_type,
+                amount: String(item.amount),
+              });
+            }
+          }
+          setSemesterItems((si) => ({ ...si, [semesterVal]: items }));
+          setCustomItems((prev) => [...prev, ...custom]);
+        }
+        return [...prev, semesterVal];
+      }
+    });
   }
 
   function addCustomItem() {
-    setCustomItems((prev) => [...prev, { name: "", slug: "", amount: "" }]);
+    setCustomItems((prev) => [...prev, { semester: "", name: "", slug: "", amount: "" }]);
   }
 
   function updateCustom(index, field, val) {
@@ -108,21 +127,26 @@ export default function FeeAddForm({
     setCustomItems((prev) => prev.filter((_, i) => i !== index));
   }
 
-  const grossTotal = useMemo(() => {
-    const fixed = FIXED_TYPES.filter((ft) => checkedTypes[ft.value]).reduce(
-      (sum, ft) => sum + (parseInt(amounts[ft.value]) || 0),
-      0,
-    );
-    const custom = customItems.reduce(
-      (sum, it) => sum + (parseInt(it.amount) || 0),
-      0,
-    );
-    return fixed + custom;
-  }, [checkedTypes, amounts, customItems]);
+  function updateSemesterAmount(sem, feeType, val) {
+    setSemesterItems((prev) => ({
+      ...prev,
+      [sem]: { ...prev[sem], [feeType]: val },
+    }));
+  }
 
-  const concessionInfo = concessions.find(
-    (c) => c.student_id === selectedStudentId,
-  );
+  const grossTotal = useMemo(() => {
+    let total = 0;
+    for (const sem of selectedSemesters) {
+      const items = semesterItems[sem] || {};
+      for (const ft of FIXED_TYPES) {
+        total += parseInt(items[ft.value] || 0) || 0;
+      }
+    }
+    total += customItems.reduce((s, it) => s + (parseInt(it.amount) || 0), 0);
+    return total;
+  }, [selectedSemesters, semesterItems, customItems]);
+
+  const concessionInfo = concessions.find((c) => c.student_id === selectedStudentId);
   const concessionAmt = concessionInfo
     ? concessionInfo.discount_type === "percent"
       ? Math.round((grossTotal * concessionInfo.discount_value) / 100)
@@ -130,17 +154,12 @@ export default function FeeAddForm({
     : 0;
   const netDue = Math.max(0, grossTotal - concessionAmt);
 
-  const itemCount =
-    FIXED_TYPES.filter((ft) => checkedTypes[ft.value]).length +
-    customItems.filter((it) => it.name.trim() && parseInt(it.amount) > 0).length;
+  const itemCount = selectedSemesters.length > 0 ? 1 : 0;
 
   return (
-    <form
-      method="POST"
-      action="/api/fees/add"
-      onSubmit={() => setSubmitting(true)}
-      className="space-y-4"
-    >
+    <form method="POST" action="/api/fees/add"
+      onSubmit={() => setSubmitting(true)} className="space-y-4">
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Faculty</label>
@@ -160,8 +179,7 @@ export default function FeeAddForm({
             <option value="">Select...</option>
             {filteredStudents.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name} — {s.course}{s.semester ? ` ${s.semester}` : ""}
-                {s.roll_number ? ` (${s.roll_number})` : ""}
+                {s.name} — {s.course}{s.semester ? ` · ${s.semester}` : ""}
               </option>
             ))}
           </select>
@@ -175,36 +193,60 @@ export default function FeeAddForm({
         </div>
       )}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Fee Types</label>
-        <div className="space-y-2">
-          {FIXED_TYPES.map((ft) => (
-            <div key={ft.value}
-              className={`border rounded-lg px-3 py-2.5 flex items-center gap-3 ${
-                checkedTypes[ft.value] ? "border-indigo-400 bg-indigo-50" : "border-gray-200 bg-white"
-              }`}>
-              <input type="checkbox" id={ft.value}
-                checked={!!checkedTypes[ft.value]}
-                onChange={() => toggleType(ft.value)}
-                className="w-4 h-4 accent-indigo-600" />
-              <label htmlFor={ft.value}
-                className="flex-1 text-sm font-medium text-gray-700 cursor-pointer">
-                {ft.label}
-              </label>
-              {checkedTypes[ft.value] && (
-                <>
-                  <input type="hidden" name={`fee_type_${ft.value}`} value={ft.value} />
-                  <input type="number" name={`amount_${ft.value}`}
-                    value={amounts[ft.value] || ""}
-                    onChange={(e) => setAmounts((prev) => ({ ...prev, [ft.value]: e.target.value }))}
-                    min="1" required placeholder="₹"
-                    className="w-24 border border-gray-300 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                </>
-              )}
-            </div>
-          ))}
+      {selectedStudentId !== "" && studentPackages.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Semesters <span className="text-red-500">*</span>
+          </label>
+          <div className="space-y-3">
+            {studentPackages.map((pkg) => {
+              const sem = pkg.semester || "General";
+              const checked = selectedSemesters.includes(sem);
+              const items = semesterItems[sem] || {};
+              return (
+                <div key={pkg.id}
+                  className={`border rounded-xl overflow-hidden ${checked ? "border-indigo-400" : "border-gray-200"}`}>
+                  <div
+                    className={`px-3 py-2.5 flex items-center gap-3 cursor-pointer ${checked ? "bg-indigo-50" : "bg-white"}`}
+                    onClick={() => toggleSemester(sem)}>
+                    <input type="checkbox" checked={checked} readOnly
+                      className="w-4 h-4 accent-indigo-600" />
+                    <span className="text-sm font-medium text-gray-700">{sem}</span>
+                    <span className="text-xs text-gray-400 ml-auto">₹{pkg.total_amount}</span>
+                  </div>
+                  {checked && (
+                    <div className="px-3 pb-3 pt-1 space-y-2 bg-indigo-50">
+                      {FIXED_TYPES.map((ft) => {
+                        if (!(ft.value in items)) return null;
+                        return (
+                          <div key={ft.value} className="flex items-center gap-3">
+                            <input type="hidden" name={`sem_${sem}_fee_type_${ft.value}`} value={ft.value} />
+                            <span className="flex-1 text-xs text-gray-600">{ft.label}</span>
+                            <input type="number"
+                              name={`sem_${sem}_amount_${ft.value}`}
+                              value={items[ft.value] || ""}
+                              onChange={(e) => updateSemesterAmount(sem, ft.value, e.target.value)}
+                              min="1" placeholder="₹"
+                              className="w-24 border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-right focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <input type="hidden" name="selected_semesters" value={JSON.stringify(selectedSemesters)} />
+          <input type="hidden" name="semester_items" value={JSON.stringify(semesterItems)} />
         </div>
-      </div>
+      )}
+
+      {selectedStudentId !== "" && studentPackages.length === 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
+          <p className="text-xs text-yellow-700">No fee package found for this student's course. Add a package first.</p>
+        </div>
+      )}
 
       <div>
         <div className="flex justify-between items-center mb-2">
@@ -244,9 +286,11 @@ export default function FeeAddForm({
         </div>
       )}
 
-      {itemCount > 0 && (
+      {grossTotal > 0 && (
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3 flex justify-between">
-          <span className="text-sm font-medium text-indigo-700">Total ({itemCount} items)</span>
+          <span className="text-sm font-medium text-indigo-700">
+            Total ({selectedSemesters.length} semester{selectedSemesters.length !== 1 ? "s" : ""})
+          </span>
           <span className="text-lg font-bold text-indigo-700">₹{netDue || grossTotal}</span>
         </div>
       )}
@@ -292,7 +336,7 @@ export default function FeeAddForm({
 
       <div className="flex gap-3 pt-2">
         <button type="submit"
-          disabled={submitting || itemCount === 0 || !selectedStudentId}
+          disabled={submitting || selectedSemesters.length === 0 || !selectedStudentId}
           className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
           {submitting ? "Saving..." : "Save Fee"}
         </button>

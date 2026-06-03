@@ -49,32 +49,52 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/fees/add", request.url), { status: 303 });
   }
 
-  const rowsToInsert = [];
+  // semester_items JSON से rows build करो
+  const semesterItemsRaw = formData.get("semester_items");
+  const selectedSemestersRaw = formData.get("selected_semesters");
 
-  for (const feeType of FIXED_TYPES) {
-    const typeVal = formData.get(`fee_type_${feeType}`);
-    if (!typeVal) continue;
-    const amt = parseInt(formData.get(`amount_${feeType}`), 10);
-    if (isNaN(amt) || amt <= 0) continue;
-    rowsToInsert.push({ feeType, amount: amt });
+  let selectedSemesters = [];
+  let semesterItemsMap = {};
+  try {
+    selectedSemesters = JSON.parse(selectedSemestersRaw || "[]");
+    semesterItemsMap = JSON.parse(semesterItemsRaw || "{}");
+  } catch {
+    await setFlash("error", "Invalid form data");
+    return NextResponse.redirect(new URL("/fees/add", request.url), { status: 303 });
   }
 
+  if (selectedSemesters.length === 0) {
+    await setFlash("error", "Select at least one semester");
+    return NextResponse.redirect(new URL("/fees/add", request.url), { status: 303 });
+  }
+
+  const rowsToInsert = [];
+
+  for (const sem of selectedSemesters) {
+    const items = semesterItemsMap[sem] || {};
+    for (const feeType of FIXED_TYPES) {
+      const amt = parseInt(items[feeType] || "0", 10);
+      if (isNaN(amt) || amt <= 0) continue;
+      rowsToInsert.push({ feeType, amount: amt, semester: sem });
+    }
+  }
+
+  // custom items
   const customCount = parseInt(formData.get("custom_count"), 10) || 0;
-  const usedTypes = new Set(rowsToInsert.map((r) => r.feeType));
+  const usedTypes = new Set(rowsToInsert.map((r) => `${r.semester}_${r.feeType}`));
   for (let i = 0; i < customCount; i++) {
     const nameRaw = formData.get(`custom_name_${i}`)?.trim();
     const amtRaw = formData.get(`custom_amount_${i}`);
     if (!nameRaw || !amtRaw) continue;
     const slug = slugify(nameRaw);
-    if (!slug || usedTypes.has(slug)) continue;
+    if (!slug) continue;
     const amt = parseInt(amtRaw, 10);
     if (isNaN(amt) || amt <= 0) continue;
-    usedTypes.add(slug);
-    rowsToInsert.push({ feeType: slug, amount: amt });
+    rowsToInsert.push({ feeType: slug, amount: amt, semester: null });
   }
 
   if (rowsToInsert.length === 0) {
-    await setFlash("error", "Select at least one fee type");
+    await setFlash("error", "No valid fee items");
     return NextResponse.redirect(new URL("/fees/add", request.url), { status: 303 });
   }
 
@@ -107,6 +127,7 @@ export async function POST(request) {
       eq(schema.fees.fee_type, row.feeType),
     ];
     if (academicYear) conditions.push(eq(schema.fees.academic_year, academicYear));
+    if (row.semester) conditions.push(eq(schema.fees.semester, row.semester));
 
     const existing = await db.select({ id: schema.fees.id }).from(schema.fees).where(and(...conditions));
     if (existing.length > 0) { skipped++; continue; }
@@ -128,6 +149,7 @@ export async function POST(request) {
       amount: row.amount,
       paid_amount: rowPaid,
       fee_type: row.feeType,
+      semester: row.semester || null,
       academic_year: academicYear,
       due_date: new Date(dueDate),
       paid_date: paidDate && rowPaid > 0 ? new Date(paidDate) : null,
