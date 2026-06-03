@@ -343,6 +343,7 @@ export default async function DashboardPage() {
               { href: "/exams/add", label: "📝 Schedule Exam" },
               { href: "/notices/add", label: "📢 Post Notice" },
               { href: "/reports", label: "📊 Reports" },
+              { href: "/fee-structure", label: "🏗️ Fee Structure" },
               { href: "/professors/add", label: "👨‍🏫 Add Professor" },
               { href: "/settings", label: "⚙️ Settings" },
             ].map((action) => (

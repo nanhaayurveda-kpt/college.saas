@@ -1,8 +1,6 @@
 import { COURSES, FEE_TYPES } from "@/lib/courses";
 
 export default async function AddFeeStructurePage() {
-  const courses = COURSES;
-
   const now = new Date();
   const baseYear = now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear();
   const currentAcademicYear = `${baseYear}-${String(baseYear + 1).slice(-2)}`;
@@ -23,7 +21,7 @@ export default async function AddFeeStructurePage() {
             <select name="course" required defaultValue=""
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="">Select...</option>
-              {courses.map((c) => <option key={c} value={c}>{c}</option>)}
+              {COURSES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
@@ -47,9 +45,7 @@ export default async function AddFeeStructurePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Discount (₹)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Discount (₹)</label>
             <input type="number" name="discount" min="0" defaultValue={0}
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
