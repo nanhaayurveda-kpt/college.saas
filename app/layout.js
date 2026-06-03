@@ -46,7 +46,9 @@ export default async function RootLayout({ children }) {
 
         {user ? (
           <div className="min-h-screen">
-            <TopBar />
+            <div className="print:hidden">
+              <TopBar />
+            </div>
             <main className="max-w-2xl mx-auto px-4 pt-16 pb-8">
               {children}
             </main>
