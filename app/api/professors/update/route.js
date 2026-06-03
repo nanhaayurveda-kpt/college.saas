@@ -7,6 +7,21 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 import { setFlash } from "@/lib/flash";
 
+async function uploadToCloudinary(file) {
+  if (!file || file.size === 0) return null;
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", uploadPreset);
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    { method: "POST", body: fd },
+  );
+  const data = await res.json();
+  return data.secure_url || null;
+}
+
 export async function POST(request) {
   // ─── Auth ──────────────────────────────────────────────────────────────
   const cookieStore = await cookies();
@@ -61,17 +76,16 @@ export async function POST(request) {
   const phone = formData.get("phone") || null;
   const email = formData.get("email") || null;
   const pin = formData.get("pin") || null;
+  const current = professorCheck[0];
+  const photoFile = formData.get("photo");
+  const uploadedPhoto = await uploadToCloudinary(photoFile);
+  const photo_url = uploadedPhoto || current.photo_url || null;
   // PIN duplicate check (PIN is globally unique)
   if (pin) {
     const pinConflict = await db
       .select()
       .from(schema.professors)
-      .where(
-        and(
-          eq(schema.professors.pin, pin),
-          ne(schema.professors.id, id),
-        ),
-      );
+      .where(and(eq(schema.professors.pin, pin), ne(schema.professors.id, id)));
     if (pinConflict.length > 0) {
       await setFlash(
         "error",
@@ -86,9 +100,12 @@ export async function POST(request) {
 
   if (!name) {
     await setFlash("error", "Name is required");
-    return NextResponse.redirect(new URL(`/professors/${id}/edit`, request.url), {
-      status: 303,
-    });
+    return NextResponse.redirect(
+      new URL(`/professors/${id}/edit`, request.url),
+      {
+        status: 303,
+      },
+    );
   }
 
   // ─── Duplicate check: same name + phone (excluding self) ───────────────
@@ -124,6 +141,7 @@ export async function POST(request) {
       phone,
       email,
       pin,
+      photo_url,
     })
     .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)));
 

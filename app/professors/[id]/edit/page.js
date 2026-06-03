@@ -5,7 +5,8 @@ import { professors, users } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";export default async function EditProfessorPage({ params }) {
+import { getSession } from "@/lib/session";
+export default async function EditProfessorPage({ params }) {
   const { id } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
@@ -35,7 +36,11 @@ import { getSession } from "@/lib/session";export default async function EditPr
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <form method="POST" action="/api/professors/update" className="space-y-4">
+        <form
+          method="POST"
+          action="/api/professors/update"
+          className="space-y-4"
+        >
           <input type="hidden" name="id" value={p.id} />
 
           <div>
@@ -102,6 +107,28 @@ import { getSession } from "@/lib/session";export default async function EditPr
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Photo
+            </label>
+            {p.photo_url && (
+              <img
+                src={p.photo_url}
+                alt={p.name}
+                className="mb-3 h-16 w-16 object-cover rounded-full"
+              />
+            )}
+            <label className="cursor-pointer bg-indigo-50 text-indigo-600 text-xs font-medium px-4 py-2 rounded-lg border border-indigo-200 inline-block">
+              Upload Photo
+              <input
+                type="file"
+                name="photo"
+                accept="image/*"
+                className="hidden"
+              />
+            </label>
+            <p className="text-xs text-gray-400 mt-1">PNG, JPG supported.</p>
           </div>
 
           <div className="flex gap-3 pt-2">
