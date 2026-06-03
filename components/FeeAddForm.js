@@ -210,3 +210,97 @@ export default function FeeAddForm({
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700">
             Custom Items <span className="text-gray-400 text-xs font-normal">(hostel, library, etc.)</span>
+          </label>
+          <button type="button" onClick={addCustomItem}
+            className="text-xs text-indigo-600 font-medium">+ Add</button>
+        </div>
+        {customItems.length === 0 ? (
+          <p className="text-xs text-gray-400 italic">No custom items.</p>
+        ) : (
+          <div className="space-y-2">
+            {customItems.map((it, i) => (
+              <div key={i} className="border border-amber-200 bg-amber-50 rounded-lg px-3 py-2 flex items-center gap-2">
+                <input type="text" name={`custom_name_${i}`}
+                  value={it.name} onChange={(e) => updateCustom(i, "name", e.target.value)}
+                  placeholder="Item name" required
+                  className="flex-1 border border-amber-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                <input type="number" name={`custom_amount_${i}`}
+                  value={it.amount} onChange={(e) => updateCustom(i, "amount", e.target.value)}
+                  min="1" required placeholder="₹"
+                  className="w-24 border border-amber-300 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                <button type="button" onClick={() => removeCustom(i)}
+                  className="text-red-500 text-lg font-bold w-6">×</button>
+              </div>
+            ))}
+          </div>
+        )}
+        <input type="hidden" name="custom_count" value={customItems.length} />
+      </div>
+
+      {concessionInfo && grossTotal > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
+          <p className="text-xs font-semibold text-green-700">💸 Concession: ₹{concessionAmt} off</p>
+          <p className="text-xs text-green-600 mt-0.5">Net Payable: ₹{netDue}</p>
+        </div>
+      )}
+
+      {itemCount > 0 && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3 flex justify-between">
+          <span className="text-sm font-medium text-indigo-700">Total ({itemCount} items)</span>
+          <span className="text-lg font-bold text-indigo-700">₹{netDue || grossTotal}</span>
+        </div>
+      )}
+
+      <input type="hidden" name="concession_amount" value={concessionAmt} />
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+          <input type="text" name="academic_year" defaultValue={currentAcademicYear}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Due Date <span className="text-red-500">*</span>
+          </label>
+          <input type="date" name="due_date" required defaultValue={today}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Paid Date <span className="text-gray-400 text-xs">(empty = pending)</span>
+          </label>
+          <input type="date" name="paid_date" value={paidDate}
+            onChange={(e) => setPaidDate(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        {paidDate && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Amount Paid Now <span className="text-gray-400 text-xs">(empty = full)</span>
+            </label>
+            <input type="number" name="amount_paid_now" value={amountPaidNow}
+              onChange={(e) => setAmountPaidNow(e.target.value)}
+              min="0" placeholder={`₹${netDue || grossTotal}`}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-3 pt-2">
+        <button type="submit"
+          disabled={submitting || itemCount === 0 || !selectedStudentId}
+          className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+          {submitting ? "Saving..." : "Save Fee"}
+        </button>
+        <a href="/fees"
+          className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg text-sm font-medium text-center">
+          Cancel
+        </a>
+      </div>
+    </form>
+  );
+}
