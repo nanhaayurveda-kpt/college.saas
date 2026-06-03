@@ -62,11 +62,17 @@ export async function POST(request) {
 
   const formData = await request.formData();
 
-  // Handle logo upload only (schema has no qr_code_url)
+  // logo upload
   const logoFile = formData.get("logo");
   let logo_url = current.logo_url || null;
   const uploadedLogo = await uploadToCloudinary(logoFile);
   if (uploadedLogo) logo_url = uploadedLogo;
+
+  // signature upload
+  const signatureFile = formData.get("signature");
+  let signature_url = current.signature_url || null;
+  const uploadedSignature = await uploadToCloudinary(signatureFile);
+  if (uploadedSignature) signature_url = uploadedSignature;
 
   const raw = {
     college_name: formData.get("college_name"),
@@ -92,6 +98,7 @@ export async function POST(request) {
     user_id: 1,
     ...parsed.data,
     logo_url,
+    signature_url,
     updated_at: new Date(),
   };
 

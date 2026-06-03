@@ -5,7 +5,9 @@ import { college_settings, users } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { cookies } from "next/headers";export default async function SettingsPage() {
+import { cookies } from "next/headers";
+
+export default async function SettingsPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) redirect("/login");
@@ -33,7 +35,7 @@ import { cookies } from "next/headers";export default async function SettingsPa
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 max-w-2xl">
-        <form method="POST" action="/api/settings/save" className="space-y-4">
+        <form method="POST" action="/api/settings/save" encType="multipart/form-data" className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               College Name <span className="text-red-500">*</span>
@@ -87,6 +89,7 @@ import { cookies } from "next/headers";export default async function SettingsPa
             </div>
           </div>
 
+          {/* College Logo */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">College Logo</label>
             {s.logo_url && (
@@ -97,6 +100,19 @@ import { cookies } from "next/headers";export default async function SettingsPa
               <input type="file" name="logo" accept="image/*" className="hidden" />
             </label>
             <p className="text-xs text-gray-400 mt-1">PNG, JPG supported.</p>
+          </div>
+
+          {/* Principal Signature */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Principal Signature</label>
+            {s.signature_url && (
+              <img src={s.signature_url} alt="Current Signature" className="mb-3 h-16 object-contain border border-gray-200 rounded p-1" />
+            )}
+            <label className="cursor-pointer bg-indigo-50 text-indigo-600 text-xs font-medium px-4 py-2 rounded-lg border border-indigo-200 inline-block">
+              Upload Signature
+              <input type="file" name="signature" accept="image/*" className="hidden" />
+            </label>
+            <p className="text-xs text-gray-400 mt-1">PNG with transparent background recommended.</p>
           </div>
 
           <div className="pt-2">
