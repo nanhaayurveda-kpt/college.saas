@@ -222,6 +222,7 @@ export default function FeeAddForm({
             <option value="">Select...</option>
             {filteredStudents.map((s) => (
               <option key={s.id} value={s.id}>
+                {s.name} — {s.course}
                 {s.semester ? ` ${s.semester}` : ""}
               </option>
             ))}
