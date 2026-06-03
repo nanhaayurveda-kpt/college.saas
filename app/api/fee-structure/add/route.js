@@ -10,65 +10,68 @@ import { setFlash } from "@/lib/flash";
 export async function POST(request) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
-  if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
-  }
+  if (!token) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
   const session = await getSession(token);
-  if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
-  }
+  if (!session) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
 
-  const userResult = await db
-    .select()
-    .from(schema.users)
-    .where(eq(schema.users.email, session.email));
+  const userResult = await db.select().from(schema.users).where(eq(schema.users.email, session.email));
   const user = userResult[0];
-  if (!user) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
-  }
+  if (!user) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
 
   const formData = await request.formData();
   const course = formData.get("course");
-  const fee_type = formData.get("fee_type");
-  const amount = parseInt(formData.get("amount"), 10);
-  const discount = parseInt(formData.get("discount") || "0", 10);
+  const semester = formData.get("semester") || null;
   const academic_year = formData.get("academic_year") || null;
+  const total_amount = parseInt(formData.get("total_amount") || "0", 10);
+  const itemsRaw = formData.get("items");
 
-  if (!course || !fee_type || isNaN(amount) || amount <= 0) {
-    await setFlash("error", "Course, fee type and valid amount are required");
+  if (!course || !academic_year) {
+    await setFlash("error", "Course and academic year are required");
     return NextResponse.redirect(new URL("/fee-structure/add", request.url), { status: 303 });
   }
 
-  const conditions = [
-    eq(schema.fee_structures.user_id, 1),
-    eq(schema.fee_structures.course, course),
-    eq(schema.fee_structures.fee_type, fee_type),
-  ];
-  if (academic_year) {
-    conditions.push(eq(schema.fee_structures.academic_year, academic_year));
+  let items = [];
+  try {
+    items = JSON.parse(itemsRaw || "[]");
+  } catch {
+    await setFlash("error", "Invalid fee items");
+    return NextResponse.redirect(new URL("/fee-structure/add", request.url), { status: 303 });
   }
-  const existing = await db
-    .select()
-    .from(schema.fee_structures)
-    .where(and(...conditions));
+
+  // Duplicate check
+  const conditions = [
+    eq(schema.fee_packages.user_id, 1),
+    eq(schema.fee_packages.course, course),
+    eq(schema.fee_packages.academic_year, academic_year),
+  ];
+  if (semester) conditions.push(eq(schema.fee_packages.semester, semester));
+
+  const existing = await db.select().from(schema.fee_packages).where(and(...conditions));
   if (existing.length > 0) {
-    await setFlash(
-      "error",
-      `Fee structure for ${course} (${fee_type}) already exists with amount ₹${existing[0].amount}. Delete it first to replace.`,
-    );
+    await setFlash("error", `Package for ${course} already exists. Delete it first.`);
     return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
   }
 
-  await db.insert(schema.fee_structures).values({
+  const [pkg] = await db.insert(schema.fee_packages).values({
     user_id: 1,
     course,
-    fee_type,
-    amount,
-    discount,
+    semester,
     academic_year,
+    total_amount,
     created_at: new Date(),
-  });
+  }).returning({ id: schema.fee_packages.id });
 
-  await setFlash("success", "Fee structure saved!");
+  if (items.length > 0) {
+    await db.insert(schema.fee_package_items).values(
+      items.map((item) => ({
+        package_id: pkg.id,
+        fee_type: item.fee_type,
+        label: item.label || null,
+        amount: parseInt(item.amount) || 0,
+      }))
+    );
+  }
+
+  await setFlash("success", "Fee package saved!");
   return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
 }

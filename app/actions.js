@@ -111,10 +111,7 @@ export async function updateStudent(formData) {
     .select()
     .from(schema.students)
     .where(
-      and(
-        eq(schema.students.id, Number(id)),
-        eq(schema.students.user_id, 1),
-      ),
+      and(eq(schema.students.id, Number(id)), eq(schema.students.user_id, 1)),
     );
   if (!studentCheck.length) redirect("/students");
 
@@ -147,10 +144,7 @@ export async function updateStudent(formData) {
     .update(schema.students)
     .set(updateData)
     .where(
-      and(
-        eq(schema.students.id, Number(id)),
-        eq(schema.students.user_id, 1),
-      ),
+      and(eq(schema.students.id, Number(id)), eq(schema.students.user_id, 1)),
     );
 
   await setFlash("success", "Student updated successfully!");
@@ -263,9 +257,7 @@ export async function updateProfessor(formData) {
   const professorCheck = await db
     .select()
     .from(schema.professors)
-    .where(
-      and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)),
-    );
+    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)));
   if (!professorCheck.length) redirect("/professors");
 
   await db
@@ -277,9 +269,7 @@ export async function updateProfessor(formData) {
       phone: formData.get("phone") || null,
       email: formData.get("email") || null,
     })
-    .where(
-      and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)),
-    );
+    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)));
 
   await setFlash("success", "Professor updated successfully!");
   redirect(`/professors/${id}`);
@@ -292,9 +282,7 @@ export async function deleteProfessor(formData) {
   const professorCheck = await db
     .select()
     .from(schema.professors)
-    .where(
-      and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)),
-    );
+    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)));
   if (!professorCheck.length) redirect("/professors");
 
   await db
@@ -445,46 +433,6 @@ export async function markFeePaid(formData) {
 
   await setFlash("success", "Fee marked as paid!");
   redirect(`/fees/${fee_id}/receipt`);
-}
-
-export async function addFeeStructure(formData) {
-  const user = await getAuthUser();
-
-  const course = formData.get("course");
-  const fee_type = formData.get("fee_type");
-  const amount = parseInt(formData.get("amount"));
-  const academic_year = formData.get("academic_year") || null;
-
-  if (!course || !fee_type || !amount) redirect("/fee-structure/add");
-
-  await db.insert(schema.fee_structures).values({
-    user_id: 1,
-    course,
-    fee_type,
-    amount,
-    academic_year,
-    created_at: new Date(),
-  });
-
-  await setFlash("success", "Fee structure saved!");
-  redirect("/fee-structure");
-}
-
-export async function deleteFeeStructure(formData) {
-  const user = await getAuthUser();
-  const id = parseInt(formData.get("id"));
-
-  await db
-    .delete(schema.fee_structures)
-    .where(
-      and(
-        eq(schema.fee_structures.id, id),
-        eq(schema.fee_structures.user_id, 1),
-      ),
-    );
-
-  await setFlash("success", "Fee structure deleted!");
-  redirect("/fee-structure");
 }
 
 export async function addConcession(formData) {
@@ -712,9 +660,7 @@ export async function updateExamFormStatus(formData) {
   await db
     .update(schema.exam_forms)
     .set({ form_status, exam_fee_paid })
-    .where(
-      and(eq(schema.exam_forms.id, id), eq(schema.exam_forms.user_id, 1)),
-    );
+    .where(and(eq(schema.exam_forms.id, id), eq(schema.exam_forms.user_id, 1)));
 
   await setFlash("success", "Exam form updated!");
   redirect("/exam-forms");
@@ -869,9 +815,7 @@ export async function deleteStudent(formData) {
   const studentCheck = await db
     .select()
     .from(schema.students)
-    .where(
-      and(eq(schema.students.id, id), eq(schema.students.user_id, 1)),
-    );
+    .where(and(eq(schema.students.id, id), eq(schema.students.user_id, 1)));
   if (!studentCheck.length) redirect("/students");
 
   await db.delete(schema.fees).where(eq(schema.fees.student_id, id));

@@ -10,39 +10,26 @@ import { setFlash } from "@/lib/flash";
 export async function POST(request) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
-  if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
-  }
+  if (!token) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
   const session = await getSession(token);
-  if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
-  }
+  if (!session) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
 
-  const userResult = await db
-    .select()
-    .from(schema.users)
-    .where(eq(schema.users.email, session.email));
+  const userResult = await db.select().from(schema.users).where(eq(schema.users.email, session.email));
   const user = userResult[0];
-  if (!user) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
-  }
+  if (!user) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
 
   const formData = await request.formData();
   const id = parseInt(formData.get("id"), 10);
-  if (isNaN(id)) {
-    return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
-  }
+  if (isNaN(id)) return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
 
-  // Ownership-scoped delete
-  await db
-    .delete(schema.fee_structures)
-    .where(
-      and(
-        eq(schema.fee_structures.id, id),
-        eq(schema.fee_structures.user_id, 1),
-      ),
-    );
+  // items पहले delete करो
+  await db.delete(schema.fee_package_items).where(eq(schema.fee_package_items.package_id, id));
 
-  await setFlash("success", "Fee structure deleted!");
+  // फिर package delete करो
+  await db.delete(schema.fee_packages).where(
+    and(eq(schema.fee_packages.id, id), eq(schema.fee_packages.user_id, 1))
+  );
+
+  await setFlash("success", "Fee package deleted!");
   return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
 }
