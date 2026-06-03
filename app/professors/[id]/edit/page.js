@@ -39,6 +39,7 @@ export default async function EditProfessorPage({ params }) {
         <form
           method="POST"
           action="/api/professors/update"
+          encType="multipart/form-data"
           className="space-y-4"
         >
           <input type="hidden" name="id" value={p.id} />
