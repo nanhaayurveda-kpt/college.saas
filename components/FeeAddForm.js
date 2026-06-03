@@ -23,6 +23,7 @@ export default function FeeAddForm({
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [selectedSemesters, setSelectedSemesters] = useState([]);
   const [semesterItems, setSemesterItems] = useState({});
+  const [semesterChecked, setSemesterChecked] = useState({});
   const [customItems, setCustomItems] = useState([]);
   const [previousDues, setPreviousDues] = useState(0);
   const [paidDate, setPaidDate] = useState("");
@@ -39,7 +40,6 @@ export default function FeeAddForm({
     return allStudents.filter((s) => s.faculty === selectedFaculty);
   }, [allStudents, selectedFaculty]);
 
-  // course के सभी packages
   const studentPackages = useMemo(() => {
     if (!selectedStudentId) return [];
     const student = allStudents.find((s) => s.id === selectedStudentId);
@@ -53,6 +53,7 @@ export default function FeeAddForm({
     setPreviousDues(duesMap[studentId] || 0);
     setSelectedSemesters([]);
     setSemesterItems({});
+    setSemesterChecked({});
     setCustomItems([]);
     setAmountPaidNow("");
   }
@@ -62,6 +63,7 @@ export default function FeeAddForm({
     setSelectedStudentId("");
     setSelectedSemesters([]);
     setSemesterItems({});
+    setSemesterChecked({});
     setCustomItems([]);
     setPreviousDues(0);
     setAmountPaidNow("");
@@ -81,21 +83,19 @@ export default function FeeAddForm({
 
     setSelectedSemesters((prev) => {
       if (prev.includes(semesterVal)) {
-        // uncheck — items हटाओ
-        setSemesterItems((si) => {
-          const updated = { ...si };
-          delete updated[semesterVal];
-          return updated;
-        });
+        setSemesterItems((si) => { const u = { ...si }; delete u[semesterVal]; return u; });
+        setSemesterChecked((sc) => { const u = { ...sc }; delete u[semesterVal]; return u; });
+        setCustomItems((ci) => ci.filter((it) => it.semester !== semesterVal));
         return prev.filter((s) => s !== semesterVal);
       } else {
-        // check — package से items load करो
         if (pkg && pkg.items) {
           const items = {};
+          const checked = {};
           const custom = [];
           for (const item of pkg.items) {
             if (FIXED_SLUGS.has(item.fee_type)) {
               items[item.fee_type] = String(item.amount);
+              checked[item.fee_type] = true;
             } else {
               custom.push({
                 semester: semesterVal,
@@ -106,11 +106,19 @@ export default function FeeAddForm({
             }
           }
           setSemesterItems((si) => ({ ...si, [semesterVal]: items }));
+          setSemesterChecked((sc) => ({ ...sc, [semesterVal]: checked }));
           setCustomItems((prev) => [...prev, ...custom]);
         }
         return [...prev, semesterVal];
       }
     });
+  }
+
+  function toggleItem(sem, feeType) {
+    setSemesterChecked((sc) => ({
+      ...sc,
+      [sem]: { ...(sc[sem] || {}), [feeType]: !sc[sem]?.[feeType] },
+    }));
   }
 
   function addCustomItem() {
@@ -139,12 +147,14 @@ export default function FeeAddForm({
     for (const sem of selectedSemesters) {
       const items = semesterItems[sem] || {};
       for (const ft of FIXED_TYPES) {
-        total += parseInt(items[ft.value] || 0) || 0;
+        if (semesterChecked[sem]?.[ft.value]) {
+          total += parseInt(items[ft.value] || 0) || 0;
+        }
       }
     }
     total += customItems.reduce((s, it) => s + (parseInt(it.amount) || 0), 0);
     return total;
-  }, [selectedSemesters, semesterItems, customItems]);
+  }, [selectedSemesters, semesterItems, semesterChecked, customItems]);
 
   const concessionInfo = concessions.find((c) => c.student_id === selectedStudentId);
   const concessionAmt = concessionInfo
@@ -153,8 +163,6 @@ export default function FeeAddForm({
       : concessionInfo.discount_value
     : 0;
   const netDue = Math.max(0, grossTotal - concessionAmt);
-
-  const itemCount = selectedSemesters.length > 0 ? 1 : 0;
 
   return (
     <form method="POST" action="/api/fees/add"
@@ -218,16 +226,24 @@ export default function FeeAddForm({
                     <div className="px-3 pb-3 pt-1 space-y-2 bg-indigo-50">
                       {FIXED_TYPES.map((ft) => {
                         if (!(ft.value in items)) return null;
+                        const isChecked = !!(semesterChecked[sem]?.[ft.value]);
                         return (
                           <div key={ft.value} className="flex items-center gap-3">
-                            <input type="hidden" name={`sem_${sem}_fee_type_${ft.value}`} value={ft.value} />
+                            <input type="checkbox"
+                              checked={isChecked}
+                              onChange={() => toggleItem(sem, ft.value)}
+                              className="w-4 h-4 accent-indigo-600" />
+                            {isChecked && (
+                              <input type="hidden" name={`sem_${sem}_fee_type_${ft.value}`} value={ft.value} />
+                            )}
                             <span className="flex-1 text-xs text-gray-600">{ft.label}</span>
                             <input type="number"
                               name={`sem_${sem}_amount_${ft.value}`}
                               value={items[ft.value] || ""}
                               onChange={(e) => updateSemesterAmount(sem, ft.value, e.target.value)}
                               min="1" placeholder="₹"
-                              className="w-24 border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-right focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                              disabled={!isChecked}
+                              className={`w-24 border rounded-lg px-2 py-1.5 text-xs text-right focus:outline-none focus:ring-2 focus:ring-indigo-500 ${!isChecked ? "bg-gray-100 border-gray-200 text-gray-400" : "border-gray-300"}`} />
                           </div>
                         );
                       })}
@@ -239,6 +255,7 @@ export default function FeeAddForm({
           </div>
           <input type="hidden" name="selected_semesters" value={JSON.stringify(selectedSemesters)} />
           <input type="hidden" name="semester_items" value={JSON.stringify(semesterItems)} />
+          <input type="hidden" name="semester_checked" value={JSON.stringify(semesterChecked)} />
         </div>
       )}
 

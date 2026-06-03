@@ -49,15 +49,18 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/fees/add", request.url), { status: 303 });
   }
 
-  // semester_items JSON से rows build करो
-  const semesterItemsRaw = formData.get("semester_items");
   const selectedSemestersRaw = formData.get("selected_semesters");
+  const semesterItemsRaw = formData.get("semester_items");
+  const semesterCheckedRaw = formData.get("semester_checked");
 
   let selectedSemesters = [];
   let semesterItemsMap = {};
+  let semesterCheckedMap = {};
+
   try {
     selectedSemesters = JSON.parse(selectedSemestersRaw || "[]");
     semesterItemsMap = JSON.parse(semesterItemsRaw || "{}");
+    semesterCheckedMap = JSON.parse(semesterCheckedRaw || "{}");
   } catch {
     await setFlash("error", "Invalid form data");
     return NextResponse.redirect(new URL("/fees/add", request.url), { status: 303 });
@@ -73,13 +76,13 @@ export async function POST(request) {
   for (const sem of selectedSemesters) {
     const items = semesterItemsMap[sem] || {};
     for (const feeType of FIXED_TYPES) {
+      if (!semesterCheckedMap[sem]?.[feeType]) continue;
       const amt = parseInt(items[feeType] || "0", 10);
       if (isNaN(amt) || amt <= 0) continue;
       rowsToInsert.push({ feeType, amount: amt, semester: sem });
     }
   }
 
-  // custom items
   const customCount = parseInt(formData.get("custom_count"), 10) || 0;
   const usedTypes = new Set(rowsToInsert.map((r) => `${r.semester}_${r.feeType}`));
   for (let i = 0; i < customCount; i++) {
