@@ -1,181 +1,212 @@
-// components/FeeAddForm.js
 "use client";
 
-import { useState } from "react";
-import { FEE_TYPES } from "@/lib/courses";
+import { useState, useMemo } from "react";
 
-const FEE_TYPE_LABELS = Object.fromEntries(FEE_TYPES.map((f) => [f.value, f.label]));
+const FIXED_TYPES = [
+  { value: "semester", label: "Semester Fee" },
+  { value: "admission", label: "Admission Fee" },
+  { value: "practical", label: "Practical Fee" },
+  { value: "misc", label: "Miscellaneous" },
+];
 
-export default function FeeAddForm({ allStudents, feePackages, feePackageItems, concessions, today, currentAcademicYear }) {
+const FIXED_SLUGS = new Set(["semester", "admission", "practical", "misc"]);
+
+export default function FeeAddForm({
+  allStudents,
+  packages,
+  duesMap,
+  concessions,
+  today,
+  currentAcademicYear,
+}) {
+  const [selectedFaculty, setSelectedFaculty] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [selectedFeeType, setSelectedFeeType] = useState("");
-  const [amount, setAmount] = useState("");
-  const [concessionInfo, setConcessionInfo] = useState(null);
-  const [netAmount, setNetAmount] = useState("");
-  const [packageItems, setPackageItems] = useState([]);
+  const [checkedTypes, setCheckedTypes] = useState({});
+  const [amounts, setAmounts] = useState({});
+  const [customItems, setCustomItems] = useState([]);
+  const [previousDues, setPreviousDues] = useState(0);
+  const [paidDate, setPaidDate] = useState("");
+  const [amountPaidNow, setAmountPaidNow] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleStudentChange(e) {
-    const studentId = parseInt(e.target.value);
-    setSelectedStudentId(studentId);
-    const conc = concessions.find((c) => c.student_id === studentId) || null;
-    setConcessionInfo(conc);
+  const facultyOptions = useMemo(() => {
+    const set = new Set(allStudents.map((s) => s.faculty).filter(Boolean));
+    return [...set].sort();
+  }, [allStudents]);
 
+  const filteredStudents = useMemo(() => {
+    if (!selectedFaculty) return allStudents;
+    return allStudents.filter((s) => s.faculty === selectedFaculty);
+  }, [allStudents, selectedFaculty]);
+
+  function loadForStudent(studentId) {
     const student = allStudents.find((s) => s.id === studentId);
-    if (student) {
-      const pkg = feePackages.find(
-        (p) => p.course === student.course &&
-          (!p.semester || p.semester === student.semester)
-      );
-      if (pkg) {
-        const items = feePackageItems.filter((i) => i.package_id === pkg.id);
-        setPackageItems(items);
-        if (items.length > 0) {
-          setSelectedFeeType(items[0].fee_type);
-          fillAmountFromItem(items[0], conc);
+    if (!student) return;
+    setPreviousDues(duesMap[studentId] || 0);
+
+    const pkg = packages.find(
+      (p) =>
+        p.course === student.course &&
+        (!p.semester || p.semester === student.semester),
+    );
+
+    const newAmounts = {};
+    const newChecked = {};
+    const newCustomItems = [];
+
+    if (pkg && pkg.items && pkg.items.length > 0) {
+      for (const item of pkg.items) {
+        if (FIXED_SLUGS.has(item.fee_type)) {
+          newAmounts[item.fee_type] = String(item.amount);
+          newChecked[item.fee_type] = true;
+        } else {
+          newCustomItems.push({
+            name: item.label || item.fee_type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+            slug: item.fee_type,
+            amount: String(item.amount),
+          });
         }
-      } else {
-        setPackageItems([]);
-        setAmount("");
-        setNetAmount("");
       }
     }
+    setAmounts(newAmounts);
+    setCheckedTypes(newChecked);
+    setCustomItems(newCustomItems);
+    setAmountPaidNow("");
   }
 
-  function fillAmountFromItem(item, conc) {
-    const base = item.amount;
-    setAmount(String(base));
-    if (conc) {
-      const discount = conc.discount_type === "percent"
-        ? Math.round((base * conc.discount_value) / 100)
-        : conc.discount_value;
-      setNetAmount(String(Math.max(0, base - discount)));
-    } else {
-      setNetAmount(String(base));
-    }
+  function handleFacultyChange(e) {
+    setSelectedFaculty(e.target.value);
+    setSelectedStudentId("");
+    setAmounts({});
+    setCheckedTypes({});
+    setCustomItems([]);
+    setPreviousDues(0);
+    setAmountPaidNow("");
   }
 
-  function handleFeeTypeChange(e) {
-    const feeType = e.target.value;
-    setSelectedFeeType(feeType);
-    const item = packageItems.find((i) => i.fee_type === feeType);
-    if (item) {
-      fillAmountFromItem(item, concessionInfo);
-    } else {
-      setAmount("");
-      setNetAmount("");
-    }
+  function handleStudentChange(e) {
+    const id = parseInt(e.target.value);
+    setSelectedStudentId(id);
+    loadForStudent(id);
   }
 
-  function handleAmountChange(e) {
-    const base = parseInt(e.target.value) || 0;
-    setAmount(e.target.value);
-    if (concessionInfo) {
-      const discount = concessionInfo.discount_type === "percent"
-        ? Math.round((base * concessionInfo.discount_value) / 100)
-        : concessionInfo.discount_value;
-      setNetAmount(String(Math.max(0, base - discount)));
-    } else {
-      setNetAmount(e.target.value);
-    }
+  function toggleType(type) {
+    setCheckedTypes((prev) => ({ ...prev, [type]: !prev[type] }));
   }
+
+  function addCustomItem() {
+    setCustomItems((prev) => [...prev, { name: "", slug: "", amount: "" }]);
+  }
+
+  function updateCustom(index, field, val) {
+    setCustomItems((prev) =>
+      prev.map((it, i) => (i === index ? { ...it, [field]: val } : it)),
+    );
+  }
+
+  function removeCustom(index) {
+    setCustomItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  const grossTotal = useMemo(() => {
+    const fixed = FIXED_TYPES.filter((ft) => checkedTypes[ft.value]).reduce(
+      (sum, ft) => sum + (parseInt(amounts[ft.value]) || 0),
+      0,
+    );
+    const custom = customItems.reduce(
+      (sum, it) => sum + (parseInt(it.amount) || 0),
+      0,
+    );
+    return fixed + custom;
+  }, [checkedTypes, amounts, customItems]);
+
+  const concessionInfo = concessions.find(
+    (c) => c.student_id === selectedStudentId,
+  );
+  const concessionAmt = concessionInfo
+    ? concessionInfo.discount_type === "percent"
+      ? Math.round((grossTotal * concessionInfo.discount_value) / 100)
+      : concessionInfo.discount_value
+    : 0;
+  const netDue = Math.max(0, grossTotal - concessionAmt);
+
+  const itemCount =
+    FIXED_TYPES.filter((ft) => checkedTypes[ft.value]).length +
+    customItems.filter((it) => it.name.trim() && parseInt(it.amount) > 0).length;
 
   return (
-    <form method="POST" action="/api/fees/add" className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Student <span className="text-red-500">*</span>
-        </label>
-        <select name="student_id" required value={selectedStudentId} onChange={handleStudentChange}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <option value="">Select student...</option>
-          {allStudents.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name} — {s.course}{s.semester ? ` ${s.semester}` : ""}{s.roll_number ? ` (${s.roll_number})` : ""}
-            </option>
-          ))}
-        </select>
-      </div>
-
+    <form
+      method="POST"
+      action="/api/fees/add"
+      onSubmit={() => setSubmitting(true)}
+      className="space-y-4"
+    >
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Fee Type <span className="text-red-500">*</span>
-          </label>
-          <select name="fee_type" value={selectedFeeType} onChange={handleFeeTypeChange}
+          <label className="block text-sm font-medium text-gray-700 mb-1">Faculty</label>
+          <select value={selectedFaculty} onChange={handleFacultyChange}
             className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="">Select...</option>
-            {packageItems.length > 0
-              ? packageItems.map((i) => (
-                  <option key={i.fee_type} value={i.fee_type}>
-                    {i.label || FEE_TYPE_LABELS[i.fee_type] || i.fee_type}
-                  </option>
-                ))
-              : FEE_TYPES.map((f) => (
-                  <option key={f.value} value={f.value}>{f.label}</option>
-                ))
-            }
+            <option value="">All</option>
+            {facultyOptions.map((f) => <option key={f} value={f}>{f}</option>)}
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Amount (₹) <span className="text-red-500">*</span>
+            Student <span className="text-red-500">*</span>
           </label>
-          <input type="number" name="amount" required min="1" value={amount}
-            onChange={handleAmountChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <select name="student_id" required value={selectedStudentId}
+            onChange={handleStudentChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Select...</option>
+            {filteredStudents.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} — {s.course}{s.semester ? ` ${s.semester}` : ""}
+                {s.roll_number ? ` (${s.roll_number})` : ""}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {concessionInfo && (
-        <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
-          <p className="text-xs font-semibold text-green-700 mb-1">💸 Concession Applied</p>
-          <p className="text-xs text-green-600">
-            {concessionInfo.discount_type === "percent"
-              ? `${concessionInfo.discount_value}% discount`
-              : `₹${concessionInfo.discount_value} off`}
-            {concessionInfo.reason ? ` — ${concessionInfo.reason}` : ""}
-          </p>
-          {netAmount && amount && (
-            <p className="text-xs text-green-700 font-bold mt-1">Net Payable: ₹{netAmount}</p>
-          )}
+      {previousDues > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+          <p className="text-xs font-semibold text-red-700">⚠️ Previous Dues: ₹{previousDues}</p>
+          <p className="text-xs text-red-500 mt-0.5">This student has unpaid fees from before.</p>
         </div>
       )}
 
-      <input type="hidden" name="net_amount" value={netAmount || amount} />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Fee Types</label>
+        <div className="space-y-2">
+          {FIXED_TYPES.map((ft) => (
+            <div key={ft.value}
+              className={`border rounded-lg px-3 py-2.5 flex items-center gap-3 ${
+                checkedTypes[ft.value] ? "border-indigo-400 bg-indigo-50" : "border-gray-200 bg-white"
+              }`}>
+              <input type="checkbox" id={ft.value}
+                checked={!!checkedTypes[ft.value]}
+                onChange={() => toggleType(ft.value)}
+                className="w-4 h-4 accent-indigo-600" />
+              <label htmlFor={ft.value}
+                className="flex-1 text-sm font-medium text-gray-700 cursor-pointer">
+                {ft.label}
+              </label>
+              {checkedTypes[ft.value] && (
+                <>
+                  <input type="hidden" name={`fee_type_${ft.value}`} value={ft.value} />
+                  <input type="number" name={`amount_${ft.value}`}
+                    value={amounts[ft.value] || ""}
+                    onChange={(e) => setAmounts((prev) => ({ ...prev, [ft.value]: e.target.value }))}
+                    min="1" required placeholder="₹"
+                    className="w-24 border border-gray-300 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
-        <input type="text" name="academic_year" defaultValue={currentAcademicYear}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Due Date <span className="text-red-500">*</span>
-          </label>
-          <input type="date" name="due_date" required defaultValue={today}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Paid Date <span className="text-gray-400 font-normal text-xs ml-1">(empty = pending)</span>
-          </label>
-          <input type="date" name="paid_date" defaultValue={today}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        </div>
-      </div>
-
-      <div className="flex gap-3 pt-2">
-        <button type="submit"
-          className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-medium">
-          Save Payment
-        </button>
-        <a href="/fees"
-          className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg text-sm font-medium text-center">
-          Cancel
-        </a>
-      </div>
-    </form>
-  );
-}
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Custom Items <span className="text-gray-400 text-xs font-normal">(hostel, libr
