@@ -8,6 +8,7 @@ const NAV = [
   { href: "/students", label: "Students", icon: "🎓" },
   { href: "/professors", label: "Professors", icon: "👨‍🏫" },
   { href: "/fees", label: "Fees", icon: "💰" },
+  { href: "/fee-structure", label: "Fee Structure", icon: "🏗️" },
   { href: "/attendance", label: "Attendance", icon: "✅" },
   { href: "/exams", label: "Exams & Results", icon: "📝" },
   { href: "/exam-forms", label: "Exam Forms", icon: "📋" },
@@ -70,8 +71,7 @@ export default function TopBar() {
             {NAV.map((item) => {
               const active =
                 pathname === item.href ||
-                (item.href !== "/dashboard" &&
-                  pathname.startsWith(item.href));
+                (item.href !== "/dashboard" && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
@@ -100,10 +100,7 @@ export default function TopBar() {
       </div>
 
       {open && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setOpen(false)}
-        />
+        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
       )}
     </>
   );

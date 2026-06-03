@@ -31,6 +31,7 @@ export async function POST(request) {
   const course = formData.get("course");
   const fee_type = formData.get("fee_type");
   const amount = parseInt(formData.get("amount"), 10);
+  const discount = parseInt(formData.get("discount") || "0", 10);
   const academic_year = formData.get("academic_year") || null;
 
   if (!course || !fee_type || isNaN(amount) || amount <= 0) {
@@ -38,7 +39,6 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/fee-structure/add", request.url), { status: 303 });
   }
 
-  // Duplicate check: same course + fee_type + academic_year
   const conditions = [
     eq(schema.fee_structures.user_id, 1),
     eq(schema.fee_structures.course, course),
@@ -64,6 +64,7 @@ export async function POST(request) {
     course,
     fee_type,
     amount,
+    discount,
     academic_year,
     created_at: new Date(),
   });
