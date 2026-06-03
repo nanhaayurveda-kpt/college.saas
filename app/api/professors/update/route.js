@@ -77,9 +77,8 @@ export async function POST(request) {
   const email = formData.get("email") || null;
   const pin = formData.get("pin") || null;
   const current = professorCheck[0];
-  const photoFile = formData.get("photo");
-  const uploadedPhoto = await uploadToCloudinary(photoFile);
-  const photo_url = uploadedPhoto || current.photo_url || null;
+  const current = professorCheck[0];
+  const photo_url = formData.get("photo_url") || current.photo_url || null;
   // PIN duplicate check (PIN is globally unique)
   if (pin) {
     const pinConflict = await db
