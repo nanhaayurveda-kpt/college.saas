@@ -28,7 +28,10 @@ export default async function FeesPage({ searchParams }) {
   const session = await getSession(cookieStore.get("session")?.value);
   if (!session) redirect("/login");
 
-  const userResult = await db.select().from(users).where(eq(users.email, session.email));
+  const userResult = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, session.email));
   const user = userResult[0];
 
   const allFees = await db
@@ -110,13 +113,17 @@ export default async function FeesPage({ searchParams }) {
           <div className="min-w-0">
             <p className="text-white font-bold text-sm truncate">{grp.name}</p>
             <p className="text-indigo-200 text-xs">
-              {grp.course}{grp.semester ? ` · ${grp.semester}` : ""}
-              {grp.roll_number ? ` · ${grp.roll_number}` : ""}
+              {grp.course}
+              {grp.semester ? ` · ${grp.semester}` : ""}
             </p>
           </div>
-          <span className={`shrink-0 px-2 py-0.5 text-xs rounded-full font-medium ${
-            balance <= 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-          }`}>
+          <span
+            className={`shrink-0 px-2 py-0.5 text-xs rounded-full font-medium ${
+              balance <= 0
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
             {balance <= 0 ? "Cleared" : `Due ₹${balance}`}
           </span>
         </div>
@@ -125,28 +132,47 @@ export default async function FeesPage({ searchParams }) {
           {grp.rows.map((f) => {
             const rowBal = (f.amount || 0) - (f.paid_amount || 0);
             const overdueFlag = isOverdue(f);
-            const st = f.status === "paid" ? "paid"
-              : overdueFlag ? "overdue"
-              : f.status === "partial" ? "partial"
-              : "pending";
+            const st =
+              f.status === "paid"
+                ? "paid"
+                : overdueFlag
+                  ? "overdue"
+                  : f.status === "partial"
+                    ? "partial"
+                    : "pending";
             return (
-              <div key={f.id} className="px-4 py-2.5 flex justify-between items-center">
+              <div
+                key={f.id}
+                className="px-4 py-2.5 flex justify-between items-center"
+              >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-sm font-medium text-gray-900">{labelOf(f.fee_type)}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {labelOf(f.fee_type)}
+                    </p>
                     {f.academic_year && (
-                      <span className="text-xs text-gray-400">{f.academic_year}</span>
+                      <span className="text-xs text-gray-400">
+                        {f.academic_year}
+                      </span>
                     )}
-                    <span className={`shrink-0 px-1.5 py-0.5 text-xs rounded-full font-medium ${
-                      st === "paid" ? "bg-green-100 text-green-700"
-                      : st === "overdue" ? "bg-red-100 text-red-700"
-                      : st === "partial" ? "bg-orange-100 text-orange-700"
-                      : "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {st === "paid" ? "Paid"
-                        : st === "partial" ? `Partial · ₹${rowBal}`
-                        : st === "overdue" ? "Overdue"
-                        : "Pending"}
+                    <span
+                      className={`shrink-0 px-1.5 py-0.5 text-xs rounded-full font-medium ${
+                        st === "paid"
+                          ? "bg-green-100 text-green-700"
+                          : st === "overdue"
+                            ? "bg-red-100 text-red-700"
+                            : st === "partial"
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {st === "paid"
+                        ? "Paid"
+                        : st === "partial"
+                          ? `Partial · ₹${rowBal}`
+                          : st === "overdue"
+                            ? "Overdue"
+                            : "Pending"}
                     </span>
                   </div>
                   <p className="text-xs text-gray-400">
@@ -155,12 +181,16 @@ export default async function FeesPage({ searchParams }) {
                 </div>
                 <div className="ml-3 shrink-0 flex items-center gap-2">
                   <p className="text-sm font-bold text-gray-900">₹{f.amount}</p>
-                  <Link href={`/fees/${f.id}/receipt`}
-                    className="text-xs text-green-600 font-medium">
+                  <Link
+                    href={`/fees/${f.id}/receipt`}
+                    className="text-xs text-green-600 font-medium"
+                  >
                     Receipt
                   </Link>
-                  <Link href={`/fees/${f.id}/edit`}
-                    className="text-xs text-gray-600 font-medium">
+                  <Link
+                    href={`/fees/${f.id}/edit`}
+                    className="text-xs text-gray-600 font-medium"
+                  >
                     Edit
                   </Link>
                 </div>
@@ -171,13 +201,26 @@ export default async function FeesPage({ searchParams }) {
 
         <div className="bg-gray-50 px-4 py-2.5 flex justify-between items-center text-xs">
           <div className="flex gap-4">
-            <span className="text-gray-500">Total: <span className="font-bold text-gray-900">₹{grp.total}</span></span>
-            <span className="text-green-600">Paid: <span className="font-bold">₹{grp.paid}</span></span>
-            <span className="text-red-500">Balance: <span className="font-bold">₹{balance}</span></span>
+            <span className="text-gray-500">
+              Total:{" "}
+              <span className="font-bold text-gray-900">₹{grp.total}</span>
+            </span>
+            <span className="text-green-600">
+              Paid: <span className="font-bold">₹{grp.paid}</span>
+            </span>
+            <span className="text-red-500">
+              Balance: <span className="font-bold">₹{balance}</span>
+            </span>
           </div>
           {balance > 0 && grp.phone && (
-            <a href={waLink(grp, balance)} target="_blank" rel="noopener noreferrer"
-              className="text-green-600 font-medium">Remind</a>
+            <a
+              href={waLink(grp, balance)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-green-600 font-medium"
+            >
+              Remind
+            </a>
           )}
         </div>
       </div>
@@ -189,15 +232,21 @@ export default async function FeesPage({ searchParams }) {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Fee Management</h1>
-          <p className="text-gray-500 text-xs mt-0.5">Student-wise fee tracking</p>
+          <p className="text-gray-500 text-xs mt-0.5">
+            Student-wise fee tracking
+          </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/fee-structure"
-            className="bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium">
+          <Link
+            href="/fee-structure"
+            className="bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium"
+          >
             🏷️ Packages
           </Link>
-          <Link href="/fees/add"
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+          <Link
+            href="/fees/add"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
             + Record
           </Link>
         </div>
@@ -206,25 +255,37 @@ export default async function FeesPage({ searchParams }) {
       <div className="grid grid-cols-2 gap-3 mb-5">
         <div className="bg-green-50 rounded-xl p-3 border border-green-100">
           <p className="text-xs text-green-600 font-medium">Collected</p>
-          <p className="text-lg font-bold text-green-700 mt-1">₹{summary.total_collected || 0}</p>
+          <p className="text-lg font-bold text-green-700 mt-1">
+            ₹{summary.total_collected || 0}
+          </p>
         </div>
         <div className="bg-red-50 rounded-xl p-3 border border-red-200">
           <p className="text-xs text-red-700 font-medium">Overdue</p>
-          <p className="text-lg font-bold text-red-700 mt-1">₹{summary.total_overdue || 0}</p>
+          <p className="text-lg font-bold text-red-700 mt-1">
+            ₹{summary.total_overdue || 0}
+          </p>
         </div>
       </div>
 
       <div className="flex gap-2 mb-4">
-        <a href="/fees?tab=students"
+        <a
+          href="/fees?tab=students"
           className={`px-4 py-2 rounded-lg text-sm font-medium ${
-            tab === "students" ? "bg-indigo-600 text-white" : "bg-white border border-gray-200 text-gray-600"
-          }`}>
+            tab === "students"
+              ? "bg-indigo-600 text-white"
+              : "bg-white border border-gray-200 text-gray-600"
+          }`}
+        >
           All Students
         </a>
-        <a href="/fees?tab=defaulters"
+        <a
+          href="/fees?tab=defaulters"
           className={`px-4 py-2 rounded-lg text-sm font-medium ${
-            tab === "defaulters" ? "bg-red-600 text-white" : "bg-white border border-gray-200 text-red-600"
-          }`}>
+            tab === "defaulters"
+              ? "bg-red-600 text-white"
+              : "bg-white border border-gray-200 text-red-600"
+          }`}
+        >
           Defaulters ({defaulterGroups.length})
         </a>
       </div>
@@ -236,7 +297,9 @@ export default async function FeesPage({ searchParams }) {
               No records found.
             </div>
           ) : (
-            studentGroups.map((grp) => <StudentCard key={grp.student_id} grp={grp} />)
+            studentGroups.map((grp) => (
+              <StudentCard key={grp.student_id} grp={grp} />
+            ))
           )}
         </div>
       )}
@@ -248,7 +311,9 @@ export default async function FeesPage({ searchParams }) {
               No defaulters.
             </div>
           ) : (
-            defaulterGroups.map((grp) => <StudentCard key={grp.student_id} grp={grp} />)
+            defaulterGroups.map((grp) => (
+              <StudentCard key={grp.student_id} grp={grp} />
+            ))
           )}
         </div>
       )}
