@@ -28,6 +28,7 @@ export default function FeeAddForm({
   const [previousDues, setPreviousDues] = useState(0);
   const [paidDate, setPaidDate] = useState("");
   const [amountPaidNow, setAmountPaidNow] = useState("");
+  const [settlePrevious, setSettlePrevious] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const facultyOptions = useMemo(() => {
@@ -238,6 +239,18 @@ export default function FeeAddForm({
           <p className="text-xs text-red-500 mt-0.5">
             This student has unpaid fees from before.
           </p>
+          <label className="flex items-center gap-2 mt-3 pt-3 border-t border-red-200 cursor-pointer">
+            <input
+              type="checkbox"
+              name="settle_previous_dues"
+              checked={settlePrevious}
+              onChange={(e) => setSettlePrevious(e.target.checked)}
+              className="w-4 h-4 accent-red-600"
+            />
+            <span className="text-xs font-medium text-red-700">
+              Also settle previous dues — ₹{previousDues} extra
+            </span>
+          </label>
         </div>
       )}
 

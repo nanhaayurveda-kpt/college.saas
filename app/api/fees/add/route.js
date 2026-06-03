@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 import { setFlash } from "@/lib/flash";
@@ -16,6 +16,7 @@ function slugify(s) {
 export async function POST(request) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
+
   if (!token) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
   const session = await getSession(token);
   if (!session) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
@@ -31,6 +32,7 @@ export async function POST(request) {
   const academicYear = formData.get("academic_year")?.trim() || null;
   const concessionAmount = parseInt(formData.get("concession_amount") || "0", 10);
   const amountPaidNowRaw = formData.get("amount_paid_now");
+  const settlePrevious = formData.get("settle_previous_dues") === "on";
 
   if (!studentId || isNaN(studentId)) {
     await setFlash("error", "Student required");
@@ -180,12 +182,46 @@ export async function POST(request) {
     inserted++;
   }
 
-  if (inserted === 0) {
+  // Settle previous dues
+  let settledCount = 0;
+  if (settlePrevious && paidDate) {
+    const oldRows = await db
+      .select({ id: schema.fees.id, amount: schema.fees.amount, paid_amount: schema.fees.paid_amount, receipt_no: schema.fees.receipt_no })
+      .from(schema.fees)
+      .where(and(
+        eq(schema.fees.user_id, 1),
+        eq(schema.fees.student_id, studentId),
+        inArray(schema.fees.status, ["pending", "partial"]),
+      ));
+    for (const oldRow of oldRows) {
+      if (oldRow.receipt_no === receiptNo) continue;
+      const remaining = (oldRow.amount || 0) - (oldRow.paid_amount || 0);
+      if (remaining <= 0) continue;
+      await db.update(schema.fees).set({
+        paid_amount: oldRow.amount,
+        status: "paid",
+        paid_date: new Date(paidDate),
+      }).where(eq(schema.fees.id, oldRow.id));
+      await db.insert(schema.fee_payments).values({
+        fee_id: oldRow.id,
+        student_id: studentId,
+        user_id: 1,
+        amount: remaining,
+        payment_mode: "cash",
+        paid_date: new Date(paidDate),
+        receipt_no: oldRow.receipt_no || receiptNo,
+      });
+      settledCount++;
+    }
+  }
+
+  if (inserted === 0 && settledCount === 0) {
     await setFlash("warning", `All ${skipped} entries already exist`);
   } else {
     const parts = [];
     if (inserted > 0) parts.push(`${inserted} entries added`);
     if (skipped > 0) parts.push(`${skipped} skipped`);
+    if (settledCount > 0) parts.push(`${settledCount} previous dues cleared`);
     await setFlash("success", `${parts.join(", ")} — Receipt ${receiptNo}`);
   }
 
