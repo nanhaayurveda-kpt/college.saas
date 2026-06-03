@@ -34,9 +34,13 @@ export default async function FeeStructurePage() {
     .orderBy(fee_packages.course);
 
   const packageIds = allPackages.map((p) => p.id);
-  const allItems = packageIds.length > 0
-    ? await db.select().from(fee_package_items).where(inArray(fee_package_items.package_id, packageIds))
-    : [];
+  const allItems =
+    packageIds.length > 0
+      ? await db
+          .select()
+          .from(fee_package_items)
+          .where(inArray(fee_package_items.package_id, packageIds))
+      : [];
 
   const packagesWithItems = allPackages.map((pkg) => ({
     ...pkg,
@@ -48,10 +52,14 @@ export default async function FeeStructurePage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Fee Packages</h1>
-          <p className="text-gray-500 text-xs mt-0.5">Course-wise fee template</p>
+          <p className="text-gray-500 text-xs mt-0.5">
+            Course-wise fee template
+          </p>
         </div>
-        <Link href="/fee-structure/packages/add"
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+        <Link
+          href="/fee-structure/packages/add"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+        >
           + Package
         </Link>
       </div>
@@ -63,29 +71,63 @@ export default async function FeeStructurePage() {
       ) : (
         <div className="space-y-4">
           {packagesWithItems.map((pkg) => (
-            <div key={pkg.id} className="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden">
+            <div
+              key={pkg.id}
+              className="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden"
+            >
               <div className="bg-indigo-600 px-4 py-2.5 flex justify-between items-center">
                 <div>
-                  <span className="text-white font-bold text-sm">{pkg.course}</span>
-                  {pkg.semester && <span className="text-indigo-200 text-xs ml-2">· {pkg.semester}</span>}
+                  <span className="text-white font-bold text-sm">
+                    {pkg.course}
+                  </span>
+                  {pkg.semester && (
+                    <span className="text-indigo-200 text-xs ml-2">
+                      · {pkg.semester}
+                    </span>
+                  )}
                 </div>
-                <span className="text-indigo-200 text-xs">{pkg.academic_year}</span>
+                <span className="text-indigo-200 text-xs">
+                  {pkg.academic_year}
+                </span>
               </div>
               <div className="divide-y divide-gray-100">
                 {pkg.items.map((item) => (
-                  <div key={item.id} className="px-4 py-2.5 flex justify-between items-center">
-                    <p className="text-sm text-gray-700">{labelOf(item.fee_type)}</p>
-                    <p className="text-sm font-semibold text-gray-900">₹{item.amount}</p>
+                  <div
+                    key={item.id}
+                    className="px-4 py-2.5 flex justify-between items-center"
+                  >
+                    <p className="text-sm text-gray-700">
+                      {labelOf(item.fee_type)}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      ₹{item.amount}
+                    </p>
                   </div>
                 ))}
               </div>
               <div className="bg-gray-50 px-4 py-2.5 flex justify-between items-center">
                 <span className="text-xs text-gray-500">Total</span>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm font-bold text-indigo-600">₹{pkg.total_amount}</span>
-                  <form method="POST" action="/api/fee-structure/packages/delete">
+                  <span className="text-sm font-bold text-indigo-600">
+                    ₹{pkg.total_amount}
+                  </span>
+                  <Link
+                    href={`/fee-structure/packages/${pkg.id}/edit`}
+                    className="text-xs text-indigo-600 font-medium"
+                  >
+                    Edit
+                  </Link>
+                  <form
+                    method="POST"
+                    action="/api/fee-structure/packages/delete"
+                  >
                     <input type="hidden" name="id" value={pkg.id} />
-                    <button type="submit" className="text-xs text-red-500 font-medium">Delete</button>
+                    <button
+                      type="submit"
+                      className="text-xs text-red-500 font-medium"
+                    >
+                      Delete
+                    </button>
                   </form>
                 </div>
               </div>
