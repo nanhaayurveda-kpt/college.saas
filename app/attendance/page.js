@@ -13,7 +13,10 @@ export default async function AttendancePage({ searchParams }) {
   const cookieStore = await cookies();
   const session = await getSession(cookieStore.get("session")?.value);
   if (!session) redirect("/login");
-  const userResult = await db.select().from(users).where(eq(users.email, session.email));
+  const userResult = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, session.email));
   const user = userResult[0];
 
   const params = await searchParams;
@@ -26,7 +29,9 @@ export default async function AttendancePage({ searchParams }) {
     .from(students)
     .where(eq(students.user_id, 1));
 
-  const courses = [...new Set(allStudents.map((s) => s.course).filter(Boolean))].sort();
+  const courses = [
+    ...new Set(allStudents.map((s) => s.course).filter(Boolean)),
+  ].sort();
 
   const filteredStudents = selectedCourse
     ? allStudents.filter((s) => s.course === selectedCourse)
@@ -39,10 +44,16 @@ export default async function AttendancePage({ searchParams }) {
     .where(and(eq(attendance.date, selectedDate), eq(students.user_id, 1)));
 
   const attendanceMap = {};
-  todayAttendance.forEach((a) => { attendanceMap[a.student_id] = a.status; });
+  todayAttendance.forEach((a) => {
+    attendanceMap[a.student_id] = a.status;
+  });
 
-  const presentCount = filteredStudents.filter((s) => attendanceMap[s.id] === "present").length;
-  const absentCount = filteredStudents.filter((s) => attendanceMap[s.id] === "absent").length;
+  const presentCount = filteredStudents.filter(
+    (s) => attendanceMap[s.id] === "present",
+  ).length;
+  const absentCount = filteredStudents.filter(
+    (s) => attendanceMap[s.id] === "absent",
+  ).length;
   const notMarked = filteredStudents.filter((s) => !attendanceMap[s.id]).length;
 
   const absentWithPhone = filteredStudents.filter(
@@ -51,8 +62,12 @@ export default async function AttendancePage({ searchParams }) {
 
   const courseWiseSummary = courses.map((course) => {
     const cStudents = allStudents.filter((s) => s.course === course);
-    const present = cStudents.filter((s) => attendanceMap[s.id] === "present").length;
-    const absent = cStudents.filter((s) => attendanceMap[s.id] === "absent").length;
+    const present = cStudents.filter(
+      (s) => attendanceMap[s.id] === "present",
+    ).length;
+    const absent = cStudents.filter(
+      (s) => attendanceMap[s.id] === "absent",
+    ).length;
     const unmarked = cStudents.filter((s) => !attendanceMap[s.id]).length;
     return { course, total: cStudents.length, present, absent, unmarked };
   });
@@ -88,20 +103,33 @@ export default async function AttendancePage({ searchParams }) {
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="block text-xs text-gray-500 mb-1">Date</label>
-              <input type="date" name="date" defaultValue={selectedDate}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input
+                type="date"
+                name="date"
+                defaultValue={selectedDate}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
             <div className="flex-1">
               <label className="block text-xs text-gray-500 mb-1">Course</label>
-              <select name="course" defaultValue={selectedCourse}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <select
+                name="course"
+                defaultValue={selectedCourse}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
                 <option value="">All Courses</option>
-                {courses.map((c) => <option key={c} value={c}>{c}</option>)}
+                {courses.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
-          <button type="submit"
-            className="w-full bg-gray-800 text-white py-2 rounded-lg text-sm font-medium">
+          <button
+            type="submit"
+            className="w-full bg-gray-800 text-white py-2 rounded-lg text-sm font-medium"
+          >
             Show
           </button>
         </form>
@@ -122,47 +150,75 @@ export default async function AttendancePage({ searchParams }) {
           <div className="text-xs text-gray-400 mt-0.5">Not Marked</div>
         </div>
       </div>
+      <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-4 text-sm text-blue-800">
+        👉 To mark attendance, tap{" "}
+        <span className="font-semibold">"Mark →"</span> next to any course
+        below.
+      </div>
 
       {/* Course-wise Summary */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-5">
         <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-sm font-semibold text-gray-700">Course-wise — {selectedDate}</h2>
+          <h2 className="text-sm font-semibold text-gray-700">
+            Course-wise — {selectedDate}
+          </h2>
           {selectedCourse && (
-            <a href={`/attendance?date=${selectedDate}`} className="text-xs text-indigo-500 font-medium">
+            <a
+              href={`/attendance?date=${selectedDate}`}
+              className="text-xs text-indigo-500 font-medium"
+            >
               Show All
             </a>
           )}
         </div>
         <div className="divide-y divide-gray-50">
-          {courseWiseSummary.map(({ course, total, present, absent, unmarked }) => {
-            const pct = total > 0 ? ((present / total) * 100).toFixed(0) : 0;
-            return (
-              <div key={course} className={`px-4 py-3 ${course === selectedCourse ? "bg-indigo-50" : ""}`}>
-                <div className="flex justify-between items-center mb-1.5">
-                  <a href={`/attendance?date=${selectedDate}&course=${course}`}
-                    className="text-sm font-semibold text-indigo-700 hover:underline">
-                    {course}
-                  </a>
-                  <div className="flex gap-3 items-center">
-                    <span className="text-xs font-bold text-gray-700">{pct}%</span>
-                    <a href={`/attendance/mark?date=${selectedDate}&course=${course}`}
-                      className="text-xs text-indigo-500 font-medium">
-                      Mark →
+          {courseWiseSummary.map(
+            ({ course, total, present, absent, unmarked }) => {
+              const pct = total > 0 ? ((present / total) * 100).toFixed(0) : 0;
+              return (
+                <div
+                  key={course}
+                  className={`px-4 py-3 ${course === selectedCourse ? "bg-indigo-50" : ""}`}
+                >
+                  <div className="flex justify-between items-center mb-1.5">
+                    <a
+                      href={`/attendance?date=${selectedDate}&course=${course}`}
+                      className="text-sm font-semibold text-indigo-700 hover:underline"
+                    >
+                      {course}
                     </a>
+                    <div className="flex gap-3 items-center">
+                      <span className="text-xs font-bold text-gray-700">
+                        {pct}%
+                      </span>
+                      <a
+                        href={`/attendance/mark?date=${selectedDate}&course=${course}`}
+                        className="text-xs text-indigo-500 font-medium"
+                      >
+                        Mark →
+                      </a>
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1.5">
+                    <div
+                      className="bg-green-500 h-1.5 rounded-full"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <div className="flex gap-4 text-xs">
+                    <span className="text-gray-500">Total: {total}</span>
+                    <span className="text-green-600">Present: {present}</span>
+                    <span className="text-red-500">Absent: {absent}</span>
+                    {unmarked > 0 && (
+                      <span className="text-yellow-500">
+                        Unmarked: {unmarked}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1.5">
-                  <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
-                </div>
-                <div className="flex gap-4 text-xs">
-                  <span className="text-gray-500">Total: {total}</span>
-                  <span className="text-green-600">Present: {present}</span>
-                  <span className="text-red-500">Absent: {absent}</span>
-                  {unmarked > 0 && <span className="text-yellow-500">Unmarked: {unmarked}</span>}
-                </div>
-              </div>
-            );
-          })}
+              );
+            },
+          )}
         </div>
       </div>
 
@@ -180,15 +236,24 @@ export default async function AttendancePage({ searchParams }) {
                 `Dear ${s.father_name || "Parent"},\n\n${s.name} (${s.course} Sem ${s.semester || "—"}) is absent today (${selectedDate}). Please inform the college.\n\n— College Management`,
               );
               return (
-                <div key={s.id}
-                  className="flex justify-between items-center bg-white rounded-lg px-3 py-2 border border-green-100">
+                <div
+                  key={s.id}
+                  className="flex justify-between items-center bg-white rounded-lg px-3 py-2 border border-green-100"
+                >
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{s.name}</p>
-                    <p className="text-xs text-gray-500">{s.father_name || "—"} · {s.phone}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {s.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {s.father_name || "—"} · {s.phone}
+                    </p>
                   </div>
-                  <a href={`https://wa.me/${fullPhone}?text=${msg}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium">
+                  <a
+                    href={`https://wa.me/${fullPhone}?text=${msg}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium"
+                  >
                     WhatsApp
                   </a>
                 </div>
@@ -202,47 +267,77 @@ export default async function AttendancePage({ searchParams }) {
       <div className="space-y-4">
         {sortedKeys.map((key) => {
           const { cls, sec, students: secStudents } = grouped[key];
-          const secPresent = secStudents.filter((s) => attendanceMap[s.id] === "present").length;
-          const secAbsent = secStudents.filter((s) => attendanceMap[s.id] === "absent").length;
-          const secUnmarked = secStudents.filter((s) => !attendanceMap[s.id]).length;
+          const secPresent = secStudents.filter(
+            (s) => attendanceMap[s.id] === "present",
+          ).length;
+          const secAbsent = secStudents.filter(
+            (s) => attendanceMap[s.id] === "absent",
+          ).length;
+          const secUnmarked = secStudents.filter(
+            (s) => !attendanceMap[s.id],
+          ).length;
           return (
-            <div key={key} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div
+              key={key}
+              className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
+            >
               <div className="bg-indigo-50 px-4 py-2 flex justify-between items-center border-b border-indigo-100">
                 <div className="flex items-center gap-2">
-                  <span className="text-indigo-800 font-bold text-sm">{cls}</span>
+                  <span className="text-indigo-800 font-bold text-sm">
+                    {cls}
+                  </span>
                   {sec !== "—" && (
                     <span className="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full">
                       Sem {sec}
                     </span>
                   )}
-                  <span className="text-xs text-gray-500">· {secStudents.length} students</span>
+                  <span className="text-xs text-gray-500">
+                    · {secStudents.length} students
+                  </span>
                 </div>
                 <div className="flex gap-3 text-xs font-medium">
                   <span className="text-green-600">P:{secPresent}</span>
                   <span className="text-red-500">A:{secAbsent}</span>
-                  {secUnmarked > 0 && <span className="text-yellow-500">?:{secUnmarked}</span>}
+                  {secUnmarked > 0 && (
+                    <span className="text-yellow-500">?:{secUnmarked}</span>
+                  )}
                 </div>
               </div>
               <div className="divide-y divide-gray-50">
                 {[...secStudents]
                   .sort((a, b) => {
-                    const ra = parseInt(a.roll_number), rb = parseInt(b.roll_number);
+                    const ra = parseInt(a.roll_number),
+                      rb = parseInt(b.roll_number);
                     if (!isNaN(ra) && !isNaN(rb)) return ra - rb;
                     return (a.name || "").localeCompare(b.name || "");
                   })
                   .map((student) => (
-                    <div key={student.id} className="px-4 py-2.5 flex justify-between items-center">
+                    <div
+                      key={student.id}
+                      className="px-4 py-2.5 flex justify-between items-center"
+                    >
                       <div>
-                        <p className="font-medium text-gray-900 text-sm">{student.name}</p>
-                        <p className="text-gray-400 text-xs">Roll {student.roll_number || "—"}</p>
+                        <p className="font-medium text-gray-900 text-sm">
+                          {student.name}
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          Roll {student.roll_number || "—"}
+                        </p>
                       </div>
-                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                        attendanceMap[student.id] === "present" ? "bg-green-100 text-green-700" :
-                        attendanceMap[student.id] === "absent" ? "bg-red-100 text-red-700" :
-                        "bg-gray-100 text-gray-400"
-                      }`}>
-                        {attendanceMap[student.id] === "present" ? "✓ Present" :
-                         attendanceMap[student.id] === "absent" ? "✗ Absent" : "—"}
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full font-medium ${
+                          attendanceMap[student.id] === "present"
+                            ? "bg-green-100 text-green-700"
+                            : attendanceMap[student.id] === "absent"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-gray-100 text-gray-400"
+                        }`}
+                      >
+                        {attendanceMap[student.id] === "present"
+                          ? "✓ Present"
+                          : attendanceMap[student.id] === "absent"
+                            ? "✗ Absent"
+                            : "—"}
                       </span>
                     </div>
                   ))}
