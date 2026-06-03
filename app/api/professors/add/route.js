@@ -7,8 +7,22 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 import { setFlash } from "@/lib/flash";
 
+async function uploadToCloudinary(file) {
+  if (!file || file.size === 0) return null;
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", uploadPreset);
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    { method: "POST", body: fd },
+  );
+  const data = await res.json();
+  return data.secure_url || null;
+}
+
 export async function POST(request) {
-  // ─── Auth ──────────────────────────────────────────────────────────────
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) {
@@ -28,7 +42,6 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
   }
 
-  // ─── Parse form ────────────────────────────────────────────────────────
   const formData = await request.formData();
   const name = formData.get("name");
   const qualification = formData.get("qualification") || null;
@@ -41,20 +54,15 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/professors/add", request.url), { status: 303 });
   }
 
-  // ─── Duplicate check 1: PIN is globally unique ─────────────────────────
   const pinCheck = await db
     .select({ id: schema.professors.id, name: schema.professors.name })
     .from(schema.professors)
     .where(eq(schema.professors.pin, pin));
   if (pinCheck.length > 0) {
-    await setFlash(
-      "error",
-      `PIN ${pin} is already in use. Please choose a different PIN.`,
-    );
+    await setFlash("error", `PIN ${pin} is already in use. Please choose a different PIN.`);
     return NextResponse.redirect(new URL("/professors/add", request.url), { status: 303 });
   }
 
-  // ─── Duplicate check 2: same name + phone in this user's professors ────
   if (phone) {
     const conditions = [
       eq(schema.professors.user_id, 1),
@@ -66,21 +74,21 @@ export async function POST(request) {
       .from(schema.professors)
       .where(and(...conditions));
     if (existing.length > 0) {
-      await setFlash(
-        "error",
-        `Professor ${name} with phone ${phone} already exists.`,
-      );
+      await setFlash("error", `Professor ${name} with phone ${phone} already exists.`);
       return NextResponse.redirect(new URL("/professors/add", request.url), { status: 303 });
     }
   }
 
-  // ─── Insert ────────────────────────────────────────────────────────────
+  const photoFile = formData.get("photo");
+  const photo_url = await uploadToCloudinary(photoFile);
+
   await db.insert(schema.professors).values({
     name,
     qualification,
     phone,
     email,
     pin,
+    photo_url,
     user_id: 1,
   });
 

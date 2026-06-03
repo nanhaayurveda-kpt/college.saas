@@ -1,4 +1,17 @@
+"use client";
+
+import { useState } from "react";
+
 export default function AddProfessorPage() {
+  const [pin, setPin] = useState("");
+
+  function handlePhoneChange(e) {
+    const val = e.target.value.replace(/\D/g, "");
+    if (val.length >= 6) {
+      setPin(val.slice(-6));
+    }
+  }
+
   return (
     <div>
       <div className="mb-6">
@@ -7,7 +20,7 @@ export default function AddProfessorPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <form method="POST" action="/api/professors/add" className="space-y-4">
+        <form method="POST" action="/api/professors/add" encType="multipart/form-data" className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Full Name <span className="text-red-500">*</span>
@@ -38,7 +51,10 @@ export default function AddProfessorPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 6-Digit PIN <span className="text-red-500">*</span>
               </label>
-              <input type="text" name="pin" required maxLength={6} minLength={6} placeholder="e.g. 123456"
+              <input type="text" name="pin" required maxLength={6} minLength={6}
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="Auto from phone"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
           </div>
@@ -46,7 +62,7 @@ export default function AddProfessorPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input type="tel" name="phone"
+              <input type="tel" name="phone" onChange={handlePhoneChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
             <div>
@@ -54,6 +70,15 @@ export default function AddProfessorPage() {
               <input type="email" name="email"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Photo</label>
+            <label className="cursor-pointer bg-indigo-50 text-indigo-600 text-xs font-medium px-4 py-2 rounded-lg border border-indigo-200 inline-block">
+              Upload Photo
+              <input type="file" name="photo" accept="image/*" className="hidden" />
+            </label>
+            <p className="text-xs text-gray-400 mt-1">PNG, JPG supported.</p>
           </div>
 
           <p className="text-xs font-bold text-pink-500 pt-2">

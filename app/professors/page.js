@@ -147,7 +147,7 @@ export default async function ProfessorsPage() {
                       href={`/professors/${prof.id}`}
                       className="text-xs font-medium text-indigo-600"
                     >
-                      View / Edit
+                      Edit
                     </Link>
                     <form method="POST" action="/api/professors/delete">
                       <input type="hidden" name="id" value={prof.id} />
