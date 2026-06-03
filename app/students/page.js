@@ -31,7 +31,9 @@ export default async function StudentsPage({ searchParams }) {
   const faculties = [...new Set(allStudents.map((s) => s.faculty))].sort();
   const years = [
     ...new Set(allStudents.map((s) => s.academic_year).filter(Boolean)),
-  ].sort().reverse();
+  ]
+    .sort()
+    .reverse();
 
   const filtered = allStudents.filter((s) => {
     const matchSearch =
@@ -64,7 +66,8 @@ export default async function StudentsPage({ searchParams }) {
         <div>
           <h1 className="text-xl font-bold text-gray-900">Students</h1>
           <p className="text-gray-500 text-xs mt-0.5">
-            Total enrolled: <strong>{allStudents.length}</strong> · Showing: {filtered.length}
+            Total enrolled: <strong>{allStudents.length}</strong> · Showing:{" "}
+            {filtered.length}
           </p>
           <p className="text-amber-600 text-xs mt-1">
             Click on a student to view concession & details.
@@ -89,7 +92,9 @@ export default async function StudentsPage({ searchParams }) {
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2 mb-4">
         <div className="bg-indigo-50 rounded-lg p-3 text-center border border-indigo-100">
-          <div className="text-lg font-bold text-indigo-700">{allStudents.length}</div>
+          <div className="text-lg font-bold text-indigo-700">
+            {allStudents.length}
+          </div>
           <div className="text-xs text-indigo-500">Total</div>
         </div>
         <div className="bg-green-50 rounded-lg p-3 text-center border border-green-100">
@@ -127,7 +132,9 @@ export default async function StudentsPage({ searchParams }) {
           >
             <option value="">All Faculties</option>
             {faculties.map((f) => (
-              <option key={f} value={f}>{f}</option>
+              <option key={f} value={f}>
+                {f}
+              </option>
             ))}
           </select>
           <select
@@ -137,7 +144,9 @@ export default async function StudentsPage({ searchParams }) {
           >
             <option value="">All Years</option>
             {years.map((y) => (
-              <option key={y} value={y}>{y}</option>
+              <option key={y} value={y}>
+                {y}
+              </option>
             ))}
           </select>
           <button
@@ -147,7 +156,12 @@ export default async function StudentsPage({ searchParams }) {
             Filter
           </button>
           {(search || selectedFaculty || selectedYear) && (
-            <a href="/students" className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm">✕</a>
+            <a
+              href="/students"
+              className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm"
+            >
+              ✕
+            </a>
           )}
         </div>
       </form>
@@ -162,11 +176,18 @@ export default async function StudentsPage({ searchParams }) {
             const courses = Object.keys(grouped[fac]).sort();
             const facTotal = courses.reduce(
               (sum, course) =>
-                sum + Object.values(grouped[fac][course]).reduce((s, arr) => s + arr.length, 0),
-              0
+                sum +
+                Object.values(grouped[fac][course]).reduce(
+                  (s, arr) => s + arr.length,
+                  0,
+                ),
+              0,
             );
             return (
-              <div key={fac} className="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden">
+              <div
+                key={fac}
+                className="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden"
+              >
                 <div className="bg-indigo-600 px-4 py-2.5 flex justify-between items-center">
                   <span className="text-white font-bold text-sm">{fac}</span>
                   <span className="bg-white text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">
@@ -176,27 +197,41 @@ export default async function StudentsPage({ searchParams }) {
                 {courses.map((course) => {
                   const semesters = Object.keys(grouped[fac][course]).sort();
                   const courseTotal = semesters.reduce(
-                    (sum, sem) => sum + grouped[fac][course][sem].length, 0
+                    (sum, sem) => sum + grouped[fac][course][sem].length,
+                    0,
                   );
                   return (
                     <div key={course} className="border-t border-gray-100">
                       <div className="bg-indigo-50 px-4 py-2 flex justify-between items-center">
-                        <span className="text-indigo-700 font-semibold text-xs">{course}</span>
-                        <span className="text-indigo-500 text-xs">{courseTotal} students</span>
+                        <span className="text-indigo-700 font-semibold text-xs">
+                          {course}
+                        </span>
+                        <span className="text-indigo-500 text-xs">
+                          {courseTotal} students
+                        </span>
                       </div>
                       {semesters.map((sem) => {
                         const semStudents = grouped[fac][course][sem];
                         return (
                           <div key={sem} className="border-t border-gray-50">
                             <div className="bg-gray-50 px-4 py-1.5 flex justify-between items-center">
-                              <span className="text-gray-500 font-medium text-xs">Sem {sem}</span>
-                              <span className="text-gray-400 text-xs">{semStudents.length} students</span>
+                              <span className="text-gray-500 font-medium text-xs">
+                                Sem {sem}
+                              </span>
+                              <span className="text-gray-400 text-xs">
+                                {semStudents.length} students
+                              </span>
                             </div>
                             <div className="divide-y divide-gray-50">
                               {semStudents.map((student, idx) => (
-                                <div key={student.id} className="px-4 py-2.5 flex justify-between items-center">
+                                <div
+                                  key={student.id}
+                                  className="px-4 py-2.5 flex justify-between items-center"
+                                >
                                   <div className="flex items-center gap-2 min-w-0">
-                                    <span className="text-xs text-gray-400 w-5 shrink-0">{idx + 1}.</span>
+                                    <span className="text-xs text-gray-400 w-5 shrink-0">
+                                      {idx + 1}.
+                                    </span>
                                     <div className="min-w-0">
                                       <Link
                                         href={`/students/${student.id}`}
@@ -205,20 +240,32 @@ export default async function StudentsPage({ searchParams }) {
                                         {student.name}
                                       </Link>
                                       <p className="text-xs text-gray-400">
-                                        Roll {student.roll_number || "—"} · {student.phone || "—"}
+                                        Roll {student.roll_number || "—"} ·{" "}
+                                        {student.phone || "—"}
                                       </p>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-2 ml-2 shrink-0">
-                                    <span className={`px-1.5 py-0.5 text-xs rounded-full font-medium ${student.fee_status === "paid" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                                      {student.fee_status === "paid" ? "Paid" : "Pending"}
-                                    </span>
-                                    <Link href={`/students/${student.id}/edit`} className="text-xs text-indigo-600 font-medium">
+                                    <Link
+                                      href={`/students/${student.id}/edit`}
+                                      className="text-xs text-indigo-600 font-medium"
+                                    >
                                       Edit
                                     </Link>
-                                    <form method="POST" action="/api/students/delete" className="inline">
-                                      <input type="hidden" name="id" value={student.id} />
-                                      <button type="submit" className="text-xs text-red-500 font-medium">
+                                    <form
+                                      method="POST"
+                                      action="/api/students/delete"
+                                      className="inline"
+                                    >
+                                      <input
+                                        type="hidden"
+                                        name="id"
+                                        value={student.id}
+                                      />
+                                      <button
+                                        type="submit"
+                                        className="text-xs text-red-500 font-medium"
+                                      >
                                         Delete
                                       </button>
                                     </form>
