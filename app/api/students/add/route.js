@@ -32,19 +32,32 @@ const studentSchema = z.object({
   pen: z.string().optional(),
   photo_url: z.string().optional(),
   academic_year: z.string().optional(),
+  admission_no: z.string().min(1, "Admission No is required"),
 });
 
 export async function POST(request) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
-  if (!token) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+  if (!token)
+    return NextResponse.redirect(new URL("/login", request.url), {
+      status: 303,
+    });
 
   const session = await getSession(token);
-  if (!session) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+  if (!session)
+    return NextResponse.redirect(new URL("/login", request.url), {
+      status: 303,
+    });
 
-  const userResult = await db.select().from(schema.users).where(eq(schema.users.email, session.email));
+  const userResult = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, session.email));
   const user = userResult[0];
-  if (!user) return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+  if (!user)
+    return NextResponse.redirect(new URL("/login", request.url), {
+      status: 303,
+    });
 
   const formData = await request.formData();
 
@@ -72,52 +85,98 @@ export async function POST(request) {
     pen: formData.get("pen") || undefined,
     photo_url: formData.get("photo_url") || undefined,
     academic_year: formData.get("academic_year") || undefined,
+    admission_no: formData.get("admission_no") || undefined,
   };
 
   const parsed = studentSchema.safeParse(raw);
   if (!parsed.success) {
-    await setFlash("error", "Invalid data: " + JSON.stringify(parsed.error.flatten().fieldErrors));
-    return NextResponse.redirect(new URL("/students/add", request.url), { status: 303 });
+    await setFlash(
+      "error",
+      "Invalid data: " + JSON.stringify(parsed.error.flatten().fieldErrors),
+    );
+    return NextResponse.redirect(new URL("/students/add", request.url), {
+      status: 303,
+    });
   }
 
   const data = parsed.data;
 
   if (data.roll_number) {
-    const existingRoll = await db.select().from(schema.students).where(
-      and(
-        eq(schema.students.user_id, MASTER_USER_ID),
-        eq(schema.students.faculty, data.faculty),
-        eq(schema.students.course, data.course),
-        eq(schema.students.semester, data.semester || ""),
-        eq(schema.students.roll_number, data.roll_number),
-      ),
-    );
+    const existingRoll = await db
+      .select()
+      .from(schema.students)
+      .where(
+        and(
+          eq(schema.students.user_id, MASTER_USER_ID),
+          eq(schema.students.faculty, data.faculty),
+          eq(schema.students.course, data.course),
+          eq(schema.students.semester, data.semester || ""),
+          eq(schema.students.roll_number, data.roll_number),
+        ),
+      );
     if (existingRoll.length > 0) {
-      await setFlash("error", `Roll No. ${data.roll_number} already exists in ${data.course} ${data.semester || ""} (${existingRoll[0].name})`);
-      return NextResponse.redirect(new URL("/students/add", request.url), { status: 303 });
+      await setFlash(
+        "error",
+        `Roll No. ${data.roll_number} already exists in ${data.course} ${data.semester || ""} (${existingRoll[0].name})`,
+      );
+      return NextResponse.redirect(new URL("/students/add", request.url), {
+        status: 303,
+      });
+    }
+  }
+  if (data.admission_no) {
+    const existingAdm = await db
+      .select()
+      .from(schema.students)
+      .where(
+        and(
+          eq(schema.students.user_id, MASTER_USER_ID),
+          eq(schema.students.admission_no, data.admission_no),
+        ),
+      );
+    if (existingAdm.length > 0) {
+      await setFlash(
+        "error",
+        `Admission No. ${data.admission_no} already exists (${existingAdm[0].name})`,
+      );
+      return NextResponse.redirect(new URL("/students/add", request.url), {
+        status: 303,
+      });
     }
   }
 
   if (data.scholar_no) {
-    const existingScholar = await db.select().from(schema.students).where(
-      and(
-        eq(schema.students.user_id, MASTER_USER_ID),
-        eq(schema.students.scholar_no, data.scholar_no),
-      ),
-    );
+    const existingScholar = await db
+      .select()
+      .from(schema.students)
+      .where(
+        and(
+          eq(schema.students.user_id, MASTER_USER_ID),
+          eq(schema.students.scholar_no, data.scholar_no),
+        ),
+      );
     if (existingScholar.length > 0) {
-      await setFlash("error", `Scholar No. ${data.scholar_no} already exists (${existingScholar[0].name} — ${existingScholar[0].course})`);
-      return NextResponse.redirect(new URL("/students/add", request.url), { status: 303 });
+      await setFlash(
+        "error",
+        `Scholar No. ${data.scholar_no} already exists (${existingScholar[0].name} — ${existingScholar[0].course})`,
+      );
+      return NextResponse.redirect(new URL("/students/add", request.url), {
+        status: 303,
+      });
     }
   }
 
   await db.insert(schema.students).values({
     ...data,
-    admission_date: data.admission_date ? new Date(data.admission_date) : new Date(),
+    admission_date: data.admission_date
+      ? new Date(data.admission_date)
+      : new Date(),
     fee_status: "pending",
     user_id: MASTER_USER_ID,
   });
 
   await setFlash("success", "Student added successfully!");
-  return NextResponse.redirect(new URL("/students", request.url), { status: 303 });
+  return NextResponse.redirect(new URL("/students", request.url), {
+    status: 303,
+  });
 }
