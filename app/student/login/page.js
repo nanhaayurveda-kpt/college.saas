@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function StudentLoginPage() {
-  const [form, setForm] = useState({ roll_number: "", phone: "" });
+  const [form, setForm] = useState({ admission_no: "", phone: "", password: "" });
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -27,7 +27,7 @@ export default function StudentLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-10 w-full max-w-md">
         <div className="text-3xl font-bold text-indigo-700 mb-2 text-center">
-          Nishant School
+          Nishant PG College
         </div>
         <div className="text-gray-500 text-sm mb-8 text-center">
           Students Portal
@@ -40,19 +40,20 @@ export default function StudentLoginPage() {
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Roll Number
+              Admission No <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               required
-              value={form.roll_number}
-              onChange={(e) => setForm({ ...form, roll_number: e.target.value })}
+              value={form.admission_no}
+              onChange={(e) => setForm({ ...form, admission_no: e.target.value })}
+              placeholder="e.g. ADM-2026-0001"
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
+              Phone Number <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
@@ -62,6 +63,20 @@ export default function StudentLoginPage() {
               placeholder="Registered mobile number"
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="password"
+              required
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              placeholder="Last 6 digits of phone"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">Password = last 6 digits of your phone number</p>
           </div>
           <button
             type="submit"
