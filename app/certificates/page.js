@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { certificates, students } from "@/lib/schema";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
+import DeleteCertificate from "./DeleteCertificate";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
@@ -27,14 +28,26 @@ export default async function CertificatesPage({ searchParams }) {
   const cookieStore = await cookies();
   const session = await getSession(cookieStore.get("session")?.value);
   if (!session) redirect("/login");
-  const userResult = await db.select().from(users).where(eq(users.email, session.email));
+  const userResult = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, session.email));
   const user = userResult[0];
 
   const params = await searchParams;
   const filterType = params?.type || "";
   const filterCourse = params?.course || "";
 
-  const courses = ["B.A.", "M.A.", "B.Com", "M.Com", "B.Sc.", "M.Sc.", "B.Sc. Ag.", "M.Sc. Ag."];
+  const courses = [
+    "B.A.",
+    "M.A.",
+    "B.Com",
+    "M.Com",
+    "B.Sc.",
+    "M.Sc.",
+    "B.Sc. Ag.",
+    "M.Sc. Ag.",
+  ];
 
   const allCerts = await db
     .select({
@@ -74,10 +87,14 @@ export default async function CertificatesPage({ searchParams }) {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Certificates</h1>
-          <p className="text-gray-500 text-xs mt-0.5">TC · Character · Bonafide · Migration</p>
+          <p className="text-gray-500 text-xs mt-0.5">
+            TC · Character · Bonafide · Migration
+          </p>
         </div>
-        <Link href="/certificates/issue"
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+        <Link
+          href="/certificates/issue"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+        >
           + Issue
         </Link>
       </div>
@@ -96,7 +113,9 @@ export default async function CertificatesPage({ searchParams }) {
           <p className="text-xs text-green-500">Bonafide</p>
         </div>
         <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 text-center">
-          <p className="text-lg font-bold text-purple-600">{counts.migration}</p>
+          <p className="text-lg font-bold text-purple-600">
+            {counts.migration}
+          </p>
           <p className="text-xs text-purple-500">Migration</p>
         </div>
       </div>
@@ -109,11 +128,15 @@ export default async function CertificatesPage({ searchParams }) {
           { val: "bonafide", label: "Bonafide" },
           { val: "migration", label: "Migration" },
         ].map(({ val, label }) => (
-          <a key={val}
+          <a
+            key={val}
             href={`/certificates?type=${val}&course=${filterCourse}`}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
-              filterType === val ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-600 border-gray-200"
-            }`}>
+              filterType === val
+                ? "bg-indigo-600 text-white border-indigo-600"
+                : "bg-white text-gray-600 border-gray-200"
+            }`}
+          >
             {label}
           </a>
         ))}
@@ -121,14 +144,31 @@ export default async function CertificatesPage({ searchParams }) {
 
       <form method="GET" action="/certificates" className="flex gap-2 mb-4">
         <input type="hidden" name="type" value={filterType} />
-        <select name="course" defaultValue={filterCourse}
-          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        <select
+          name="course"
+          defaultValue={filterCourse}
+          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        >
           <option value="">All Courses</option>
-          {courses.map((c) => <option key={c} value={c}>{c}</option>)}
+          {courses.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
         </select>
-        <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Filter</button>
+        <button
+          type="submit"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+        >
+          Filter
+        </button>
         {filterCourse && (
-          <a href={`/certificates?type=${filterType}`} className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm">✕</a>
+          <a
+            href={`/certificates?type=${filterType}`}
+            className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm"
+          >
+            ✕
+          </a>
         )}
       </form>
 
@@ -139,26 +179,50 @@ export default async function CertificatesPage({ searchParams }) {
       ) : (
         <div className="space-y-2">
           {filtered.map((cert) => (
-            <div key={cert.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex justify-between items-start">
+            <div
+              key={cert.id}
+              className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex justify-between items-start"
+            >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{cert.student_name || "—"}</p>
-                  <span className={`shrink-0 px-2 py-0.5 text-xs rounded-full font-medium ${CERT_COLORS[cert.cert_type] || "bg-gray-100 text-gray-600"}`}>
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {cert.student_name || "—"}
+                  </p>
+                  <span
+                    className={`shrink-0 px-2 py-0.5 text-xs rounded-full font-medium ${CERT_COLORS[cert.cert_type] || "bg-gray-100 text-gray-600"}`}
+                  >
                     {CERT_LABELS[cert.cert_type] || cert.cert_type}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500">
-                  {cert.student_course || "—"} {cert.student_semester ? `Sem ${cert.student_semester}` : ""}
+                  {cert.student_course || "—"}{" "}
+                  {cert.student_semester ? `Sem ${cert.student_semester}` : ""}
                   {cert.roll_number ? ` · Roll ${cert.roll_number}` : ""}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Issued: {cert.issue_date}{cert.serial_no ? ` · Serial: ${cert.serial_no}` : ""}
+                  Issued: {cert.issue_date}
+                  {cert.serial_no ? ` · Serial: ${cert.serial_no}` : ""}
                 </p>
               </div>
-              <Link href={`/certificates/${cert.id}`}
-                className="ml-3 shrink-0 text-xs text-indigo-600 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg">
-                🖨️ Print
-              </Link>
+              <div className="ml-3 shrink-0 flex flex-col gap-1.5 items-end">
+                <Link
+                  href={`/certificates/${cert.id}`}
+                  className="text-xs text-indigo-600 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg"
+                >
+                  🖨️ Print
+                </Link>
+                <Link
+                  href={`/certificates/${cert.id}/edit`}
+                  className="text-xs text-gray-600 font-medium bg-gray-50 px-3 py-1.5 rounded-lg"
+                >
+                  ✏️ Edit
+                </Link>
+                <DeleteCertificate
+                  certId={cert.id}
+                  studentName={cert.student_name}
+                  certType={CERT_LABELS[cert.cert_type] || cert.cert_type}
+                />
+              </div>
             </div>
           ))}
         </div>

@@ -45,7 +45,7 @@ export default async function AttendancePage({ searchParams }) {
 
   const attendanceMap = {};
   todayAttendance.forEach((a) => {
-    attendanceMap[a.student_id] = a.status;
+    attendanceMap[a.attendance.student_id] = a.attendance.status;
   });
 
   const presentCount = filteredStudents.filter(

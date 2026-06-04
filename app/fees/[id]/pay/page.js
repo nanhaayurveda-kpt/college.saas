@@ -5,7 +5,9 @@ import { fees, students, users } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";export default async function PayFeePage({ params }) {
+import { getSession } from "@/lib/session";
+import PayFeeForm from "./PayFeeForm";
+export default async function PayFeePage({ params }) {
   const { id } = await params;
 
   const cookieStore = await cookies();
@@ -61,9 +63,13 @@ import { getSession } from "@/lib/session";export default async function PayFee
         <div className="space-y-3 mb-6">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Student</span>
-            <span className="font-medium text-gray-900">
-              {fee.student_name}
-            </span>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Balance</span>
+              <span className="font-bold text-red-600 text-lg">
+                ₹{fee.amount - (fee.paid_amount || 0)}
+              </span>
+            </div>
+            
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Course</span>
@@ -100,63 +106,11 @@ import { getSession } from "@/lib/session";export default async function PayFee
           </div>
         </div>
 
-        <form method="POST" action="/api/fees/mark-paid" className="space-y-4">
-          <input type="hidden" name="fee_id" value={fee.id} />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Amount Paying Now (₹) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              name="paid_amount"
-              required
-              min="1"
-              defaultValue={fee.amount - (fee.paid_amount || 0)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              Total: ₹{fee.amount} · Already paid: ₹{fee.paid_amount || 0} ·
-              Balance: ₹{fee.amount - (fee.paid_amount || 0)}
-            </p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Date <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="paid_date"
-              required
-              defaultValue={today}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Receipt No.
-            </label>
-            <input
-              type="text"
-              name="receipt_no"
-              placeholder="e.g. RCP/2024/001"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              className="flex-1 bg-green-600 text-white py-2.5 rounded-lg text-sm font-medium"
-            >
-              ✅ Mark as Paid
-            </button>
-            <a
-              href="/fees"
-              className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg text-sm font-medium text-center"
-            >
-              Cancel
-            </a>
-          </div>
-        </form>
+        <PayFeeForm
+          feeId={fee.id}
+          balance={fee.amount - (fee.paid_amount || 0)}
+          today={today}
+        />
       </div>
     </div>
   );

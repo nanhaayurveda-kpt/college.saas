@@ -1,7 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import { db } from "@/lib/db";
-import { students, users } from "@/lib/schema";
+import { students, users, fee_concessions, fees } from "@/lib/schema";
+import DeleteStudentButton from "@/app/students/DeleteStudentButton";
+import AddConcessionForm from "./AddConcessionForm";
 import { eq, and } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
@@ -29,6 +31,10 @@ export default async function StudentDetailPage({ params }) {
     .where(and(eq(students.id, Number(id)), eq(students.user_id, 1)));
   if (result.length === 0) notFound();
   const s = result[0];
+  const concessions = await db
+    .select()
+    .from(fee_concessions)
+    .where(eq(fee_concessions.student_id, Number(id)));
 
   return (
     <div>
@@ -44,15 +50,8 @@ export default async function StudentDetailPage({ params }) {
           >
             Edit
           </Link>
-          <form method="POST" action="/api/students/delete">
-            <input type="hidden" name="id" value={s.id} />
-            <button
-              type="submit"
-              className="bg-red-500 text-white px-3 py-2 rounded-lg text-xs font-medium"
-            >
-              Delete
-            </button>
-          </form>
+          <DeleteStudentButton studentId={s.id} studentName={s.name} />
+
           <Link
             href="/students"
             className="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium"
@@ -214,6 +213,47 @@ export default async function StudentDetailPage({ params }) {
             </p>
           </div>
         </div>
+      </div>
+      {/* Fee Concession */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mt-4">
+        <h2 className="font-semibold text-gray-900 text-sm mb-3">
+          Fee Concession
+        </h2>
+        {concessions.length > 0 ? (
+          <div className="space-y-2 mb-4">
+            {concessions.map((c) => (
+              <div
+                key={c.id}
+                className="flex justify-between items-center bg-green-50 border border-green-100 rounded-lg px-3 py-2.5"
+              >
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    {c.discount_type === "percent"
+                      ? `${c.discount_value}%`
+                      : `₹${c.discount_value}`}{" "}
+                    off
+                  </p>
+                  {c.reason && (
+                    <p className="text-xs text-gray-500">{c.reason}</p>
+                  )}
+                </div>
+                <form method="POST" action="/api/concessions/delete">
+                  <input type="hidden" name="id" value={c.id} />
+                  <input type="hidden" name="student_id" value={s.id} />
+                  <button
+                    type="submit"
+                    className="text-xs text-red-500 font-medium"
+                  >
+                    Remove
+                  </button>
+                </form>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400 mb-4">No concession set.</p>
+        )}
+        <AddConcessionForm studentId={s.id} />
       </div>
     </div>
   );
