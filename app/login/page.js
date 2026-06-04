@@ -37,13 +37,9 @@ export default function LoginPage() {
             href="/student/login"
             className="flex items-center justify-center gap-3 w-full border border-green-200 rounded-xl px-4 py-3 text-sm font-medium text-green-700 hover:bg-green-50 transition"
           >
-            🎓 Student Login — Roll No & Phone
+            🎓 Student Login — Admission No & Phone
           </a>
         </div>
-
-        <p className="text-xs text-gray-400 mt-6">
-          First time? 7 days completely free.
-        </p>
       </div>
     </div>
   );
