@@ -13,6 +13,7 @@ const FIXED_TYPES = [
 export default function PackageForm({ currentAcademicYear }) {
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
   const [academicYear, setAcademicYear] = useState(currentAcademicYear);
   const [checkedTypes, setCheckedTypes] = useState({});
   const [amounts, setAmounts] = useState({});
@@ -85,6 +86,17 @@ export default function PackageForm({ currentAcademicYear }) {
             className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">All Semesters</option>
             {SEMESTERS.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
+          <select name="section" value={selectedSection}
+            onChange={(e) => setSelectedSection(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">None</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
           </select>
         </div>
       </div>

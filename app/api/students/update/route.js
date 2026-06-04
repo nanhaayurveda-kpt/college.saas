@@ -36,6 +36,7 @@ export async function POST(request) {
   const newFaculty = formData.get("faculty");
   const newCourse = formData.get("course");
   const newSemester = formData.get("semester") || null;
+  const newSection = formData.get("section") || null;
   const newRoll = formData.get("roll_number");
   const newScholarNo = formData.get("scholar_no") || null;
   const newEnrolmentNo = formData.get("enrolment_no") || null;
@@ -76,6 +77,7 @@ export async function POST(request) {
     faculty: newFaculty,
     course: newCourse,
     semester: newSemester,
+    section: newSection,
     roll_number: newRoll,
     scholar_no: newScholarNo,
     enrolment_no: newEnrolmentNo,

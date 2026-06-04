@@ -53,10 +53,12 @@ export default async function StudentsPage({ searchParams }) {
     const fac = s.faculty || "—";
     const course = s.course || "—";
     const sem = s.semester || "—";
+    const sec = s.section || "";
     if (!grouped[fac]) grouped[fac] = {};
     if (!grouped[fac][course]) grouped[fac][course] = {};
-    if (!grouped[fac][course][sem]) grouped[fac][course][sem] = [];
-    grouped[fac][course][sem].push(s);
+    if (!grouped[fac][course][sem]) grouped[fac][course][sem] = {};
+    if (!grouped[fac][course][sem][sec]) grouped[fac][course][sem][sec] = [];
+    grouped[fac][course][sem][sec].push(s);
   });
   const sortedFaculties = Object.keys(grouped).sort();
 
@@ -197,7 +199,7 @@ export default async function StudentsPage({ searchParams }) {
                 {courses.map((course) => {
                   const semesters = Object.keys(grouped[fac][course]).sort();
                   const courseTotal = semesters.reduce(
-                    (sum, sem) => sum + grouped[fac][course][sem].length,
+                    (sum, sem) => Object.values(grouped[fac][course][sem]).reduce((s2, arr) => s2 + arr.length, 0) + sum,
                     0,
                   );
                   return (
@@ -211,7 +213,8 @@ export default async function StudentsPage({ searchParams }) {
                         </span>
                       </div>
                       {semesters.map((sem) => {
-                        const semStudents = grouped[fac][course][sem];
+                        const sections = Object.keys(grouped[fac][course][sem]).sort();
+                        const semTotal = sections.reduce((s2, sec) => s2 + grouped[fac][course][sem][sec].length, 0);
                         return (
                           <div key={sem} className="border-t border-gray-50">
                             <div className="bg-gray-50 px-4 py-1.5 flex justify-between items-center">
@@ -219,11 +222,11 @@ export default async function StudentsPage({ searchParams }) {
                                 Sem {sem}
                               </span>
                               <span className="text-gray-400 text-xs">
-                                {semStudents.length} students
+                                {semTotal} students
                               </span>
                             </div>
                             <div className="divide-y divide-gray-50">
-                              {semStudents.map((student, idx) => (
+                              {sections.flatMap((sec) => { return grouped[fac][course][sem][sec].map((student, idx) => (
                                 <div
                                   key={student.id}
                                   className="px-4 py-2.5 flex justify-between items-center"
@@ -271,7 +274,7 @@ export default async function StudentsPage({ searchParams }) {
                                     </form>
                                   </div>
                                 </div>
-                              ))}
+                              )); })}
                             </div>
                           </div>
                         );

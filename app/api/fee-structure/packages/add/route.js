@@ -26,6 +26,7 @@ export async function POST(request) {
   const formData = await request.formData();
   const course = formData.get("course")?.trim();
   const semester = formData.get("semester")?.trim() || null;
+  const section = formData.get("section")?.trim() || null;
   const academic_year = formData.get("academic_year")?.trim();
 
   if (!course || !academic_year) {
@@ -93,6 +94,7 @@ export async function POST(request) {
     user_id: 1,
     course,
     semester,
+    section,
     academic_year,
     total_amount: computedTotal,
     created_at: new Date(),

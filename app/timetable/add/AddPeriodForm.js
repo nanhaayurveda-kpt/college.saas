@@ -45,6 +45,19 @@ export default function AddPeriodForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
+          Section
+        </label>
+        <select name="section" defaultValue=""
+          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="">All Sections</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Day <span className="text-red-500">*</span>
         </label>
         <select name="day" required defaultValue=""
