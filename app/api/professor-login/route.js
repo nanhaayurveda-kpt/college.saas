@@ -10,13 +10,14 @@ export async function POST(request) {
   const formData = await request.formData();
   const pin = formData.get("pin");
   const phone = formData.get("phone");
+  const email = formData.get("email");
 
-  if (!pin || !phone) {
+  if (!pin || !phone || !email) {
     return NextResponse.redirect(new URL("/professor-login?error=1", request.url), { status: 303 });
   }
 
   const result = await db.select().from(professors).where(
-    and(eq(professors.pin, pin), eq(professors.phone, phone))
+    and(eq(professors.pin, pin), eq(professors.phone, phone), eq(professors.email, email))
   );
   const professor = result[0];
 

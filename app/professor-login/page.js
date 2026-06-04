@@ -8,16 +8,17 @@ export default async function ProfessorLoginPage({ searchParams }) {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-4xl mb-3">👨‍🏫</div>
+          <p className="text-lg font-bold text-indigo-700 mb-1">Nishant PG College</p>
           <h1 className="text-2xl font-bold text-gray-900">Professor Login</h1>
           <p className="text-gray-500 text-sm mt-1">
-            Enter your mobile number and 6-digit PIN
+            Mobile · PIN · Email
           </p>
         </div>
 
         <form action="/api/professor-login" method="POST" className="space-y-4">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2.5 rounded-lg">
-              Invalid mobile number or PIN. Please try again.
+              Invalid credentials. Please try again.
             </div>
           )}
           <div>
@@ -34,6 +35,14 @@ export default async function ProfessorLoginPage({ searchParams }) {
             </label>
             <PasswordInput name="pin" placeholder="••••••" maxLength={6} minLength={6}
               extraClass="text-center text-xl tracking-widest" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email <span className="text-red-500">*</span>
+            </label>
+            <input type="email" name="email" required
+              placeholder="Registered email"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
           <button type="submit"
             className="w-full bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 text-sm font-medium">
