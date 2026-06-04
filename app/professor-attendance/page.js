@@ -117,12 +117,36 @@ export default async function ProfessorAttendancePage({ searchParams }) {
                         <input
                           type="radio"
                           name={`status_${p.id}`}
+                          value="present"
+                          defaultChecked={
+                            !current || current.status === "present"
+                          }
+                          className="accent-green-600"
+                        />
+                        <span className="text-green-700 font-medium">
+                          Present
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-1 text-xs">
+                        <input
+                          type="radio"
+                          name={`status_${p.id}`}
+                          value="absent"
+                          defaultChecked={current?.status === "absent"}
+                          className="accent-red-600"
+                        />
+                        <span className="text-red-600 font-medium">Absent</span>
+                      </label>
+                      <label className="flex items-center gap-1 text-xs">
+                        <input
+                          type="radio"
+                          name={`status_${p.id}`}
                           value="na"
                           defaultChecked={current?.status === "na"}
                           className="accent-gray-400"
                         />
                         <span className="text-gray-500 font-medium">N/A</span>
-                      </label>{" "}
+                      </label>
                     </div>
                   </div>
                   <input
