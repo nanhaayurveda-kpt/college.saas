@@ -180,7 +180,7 @@ export default async function DashboardPage() {
     .map((r) => r.name);
   const profAbsentList = profAttRows
     .filter((r) => r.status === "absent")
-    .map((r) => r.name);
+    .map((r) => r.name || "Unknown");
   const markedProfIds = new Set(profAttRows.map((r) => r.professor_id));
   const allProfsForNA = await db
     .select({ id: professors.id, name: professors.name })
