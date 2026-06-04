@@ -136,7 +136,12 @@ export default async function DashboardPage() {
     markedStudentIds.add(r.student_id);
   });
   const allStudentsForNA = await db
-    .select({ id: students.id, name: students.name, course: students.course, semester: students.semester })
+    .select({
+      id: students.id,
+      name: students.name,
+      course: students.course,
+      semester: students.semester,
+    })
     .from(students)
     .where(eq(students.user_id, 1));
   allStudentsForNA.forEach((s) => {
@@ -163,12 +168,21 @@ export default async function DashboardPage() {
     })
     .from(professor_attendance)
     .leftJoin(professors, eq(professor_attendance.professor_id, professors.id))
-    .where(and(eq(professor_attendance.user_id, 1), eq(professor_attendance.date, today)));
+    .where(
+      and(
+        eq(professor_attendance.user_id, 1),
+        eq(professor_attendance.date, today),
+      ),
+    );
 
-  const profPresentList = profAttRows.filter((r) => r.status === "present").map((r) => r.name);
-  const profAbsentList  = profAttRows.filter((r) => r.status === "absent").map((r) => r.name);
-  const markedProfIds   = new Set(profAttRows.map((r) => r.professor_id));
-  const allProfsForNA   = await db
+  const profPresentList = profAttRows
+    .filter((r) => r.status === "present")
+    .map((r) => r.name);
+  const profAbsentList = profAttRows
+    .filter((r) => r.status === "absent")
+    .map((r) => r.name);
+  const markedProfIds = new Set(profAttRows.map((r) => r.professor_id));
+  const allProfsForNA = await db
     .select({ id: professors.id, name: professors.name })
     .from(professors)
     .where(eq(professors.user_id, 1));
@@ -359,9 +373,16 @@ export default async function DashboardPage() {
               { href: "/exams/add", label: "📝 Schedule Exam" },
               { href: "/notices/add", label: "📢 Post Notice" },
               { href: "/reports", label: "📊 Reports" },
-              { href: "/fee-structure/packages/add", label: "🏗️ Fee Structure" },
+              {
+                href: "/fee-structure/packages/add",
+                label: "🏗️ Fee Structure",
+              },
+              { href: "/timetable", label: "🗓️ Timetable" },
               { href: "/professors/add", label: "👨‍🏫 Add Professor" },
-              { href: `/professor-attendance?date=${today}`, label: "📋 Prof. Attendance" },
+              {
+                href: `/professor-attendance?date=${today}`,
+                label: "📋 Prof. Attendance",
+              },
               { href: "/settings", label: "⚙️ Settings" },
             ].map((action) => (
               <a
