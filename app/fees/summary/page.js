@@ -68,6 +68,16 @@ export default async function FeesSummaryPage({ searchParams }) {
   });
 
   const faculties = Object.keys(grouped).sort();
+  // Semester-wise grand total
+  const semTotals = {};
+  filtered.forEach((f) => {
+    const key = (f.course || "—") + " Sem " + (f.semester || "—");
+    if (!semTotals[key]) semTotals[key] = { total: 0, paid: 0, balance: 0 };
+    semTotals[key].total += f.amount || 0;
+    semTotals[key].paid += f.paid_amount || 0;
+    semTotals[key].balance += (f.amount || 0) - (f.paid_amount || 0);
+  });
+  const semTotalKeys = Object.keys(semTotals).sort();
   const totalAmount = filtered.reduce((s, f) => s + (f.amount || 0), 0);
   const totalPaid = filtered.reduce((s, f) => s + (f.paid_amount || 0), 0);
   const totalBalance = totalAmount - totalPaid;
@@ -130,6 +140,39 @@ export default async function FeesSummaryPage({ searchParams }) {
           <p className="text-xs text-gray-500">Balance</p>
         </div>
       </div>
+      {semTotalKeys.length > 0 && (
+        <details className="bg-white rounded-xl border border-gray-100 p-4 mb-5">
+          <summary className="font-semibold text-gray-900 text-sm cursor-pointer">
+            Semester-wise Grand Total —{" "}
+            <span className="text-indigo-600 font-normal">click to view</span>
+          </summary>
+          <div className="mt-3 space-y-2">
+            <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-gray-500 uppercase px-2 pb-1 border-b border-gray-100">
+              <span>Course/Sem</span>
+              <span className="text-right">Total</span>
+              <span className="text-right">Paid</span>
+              <span className="text-right">Balance</span>
+            </div>
+            {semTotalKeys.map((key) => (
+              <div
+                key={key}
+                className="grid grid-cols-4 gap-2 px-2 py-1.5 rounded-lg bg-gray-50"
+              >
+                <span className="text-xs font-medium text-gray-700">{key}</span>
+                <span className="text-xs text-right text-gray-900">
+                  ₹{semTotals[key].total}
+                </span>
+                <span className="text-xs text-right text-green-600">
+                  ₹{semTotals[key].paid}
+                </span>
+                <span className="text-xs text-right text-red-500">
+                  ₹{semTotals[key].balance}
+                </span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
 
       {filtered.length === 0 ? (
         <p className="text-center text-gray-400 text-sm mt-10">
