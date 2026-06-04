@@ -13,7 +13,10 @@ export default async function FeesSummaryPage({ searchParams }) {
   const session = await getSession(cookieStore.get("session")?.value);
   if (!session) redirect("/login");
 
-  const userResult = await db.select().from(users).where(eq(users.email, session.email));
+  const userResult = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, session.email));
   const user = userResult[0];
   if (!user) redirect("/login");
 
@@ -38,11 +41,19 @@ export default async function FeesSummaryPage({ searchParams }) {
     .from(fees)
     .leftJoin(students, eq(fees.student_id, students.id))
     .where(eq(students.user_id, 1))
-    .orderBy(students.faculty, students.course, students.semester, students.name);
+    .orderBy(
+      students.faculty,
+      students.course,
+      students.semester,
+      students.name,
+    );
 
-  const filtered = allFees.filter((f) =>
-    status === "paid" ? f.status === "paid" : f.status !== "paid"
-  );
+  const filtered =
+    status === "all"
+      ? allFees
+      : allFees.filter((f) =>
+          status === "paid" ? f.status === "paid" : f.status !== "paid",
+        );
 
   // Group: faculty → course → semester → students
   const grouped = {};
@@ -66,24 +77,41 @@ export default async function FeesSummaryPage({ searchParams }) {
       <div className="flex justify-between items-center mb-5">
         <div>
           <h1 className="text-xl font-bold text-gray-900">
-            {status === "paid" ? "Collected Fees" : "Pending Fees"}
+            {status === "paid"
+              ? "Collected Fees"
+              : status === "all"
+                ? "All Fees"
+                : "Pending Fees"}
           </h1>
           <p className="text-gray-500 text-xs mt-0.5">
             {filtered.length} records
           </p>
         </div>
-        <Link href="/dashboard" className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">
+        <Link
+          href="/dashboard"
+          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium"
+        >
           ← Back
         </Link>
       </div>
 
       <div className="flex gap-2 mb-5">
-        <Link href="/fees/summary?status=pending"
-          className={`px-4 py-2 rounded-lg text-xs font-medium ${status === "pending" ? "bg-red-600 text-white" : "bg-gray-100 text-gray-600"}`}>
+        <Link
+          href="/fees/summary?status=all"
+          className={`px-4 py-2 rounded-lg text-xs font-medium ${status === "all" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600"}`}
+        >
+          All
+        </Link>
+        <Link
+          href="/fees/summary?status=pending"
+          className={`px-4 py-2 rounded-lg text-xs font-medium ${status === "pending" ? "bg-red-600 text-white" : "bg-gray-100 text-gray-600"}`}
+        >
           Pending
         </Link>
-        <Link href="/fees/summary?status=paid"
-          className={`px-4 py-2 rounded-lg text-xs font-medium ${status === "paid" ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600"}`}>
+        <Link
+          href="/fees/summary?status=paid"
+          className={`px-4 py-2 rounded-lg text-xs font-medium ${status === "paid" ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600"}`}
+        >
           Collected
         </Link>
       </div>
@@ -104,52 +132,78 @@ export default async function FeesSummaryPage({ searchParams }) {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-center text-gray-400 text-sm mt-10">No records found.</p>
+        <p className="text-center text-gray-400 text-sm mt-10">
+          No records found.
+        </p>
       ) : (
         <div className="space-y-5">
           {faculties.map((fac) => (
-            <div key={fac} className="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden">
+            <div
+              key={fac}
+              className="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden"
+            >
               <div className="bg-indigo-600 px-4 py-2.5">
                 <span className="text-white font-bold text-sm">{fac}</span>
               </div>
-              {Object.keys(grouped[fac]).sort().map((course) => (
-                <div key={course}>
-                  <div className="bg-indigo-50 px-4 py-2 border-t border-indigo-100">
-                    <span className="text-indigo-700 font-semibold text-xs">{course}</span>
-                  </div>
-                  {Object.keys(grouped[fac][course]).sort().map((sem) => (
-                    <div key={sem}>
-                      <div className="bg-gray-50 px-4 py-1.5 border-t border-gray-100">
-                        <span className="text-gray-500 font-medium text-xs">Sem {sem}</span>
-                      </div>
-                      <div className="divide-y divide-gray-50">
-                        {grouped[fac][course][sem].map((f) => {
-                          const balance = (f.amount || 0) - (f.paid_amount || 0);
-                          return (
-                            <div key={f.id} className="px-4 py-3 flex justify-between items-start">
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">{f.student_name || "—"}</p>
-                                <p className="text-xs text-gray-400">
-                                  Roll {f.roll_number || "—"} · {f.fee_type || "—"}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm font-bold text-gray-900">₹{f.amount}</p>
-                                {f.paid_amount > 0 && (
-                                  <p className="text-xs text-green-600">Paid ₹{f.paid_amount}</p>
-                                )}
-                                {balance > 0 && (
-                                  <p className="text-xs text-red-500">Due ₹{balance}</p>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+              {Object.keys(grouped[fac])
+                .sort()
+                .map((course) => (
+                  <div key={course}>
+                    <div className="bg-indigo-50 px-4 py-2 border-t border-indigo-100">
+                      <span className="text-indigo-700 font-semibold text-xs">
+                        {course}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              ))}
+                    {Object.keys(grouped[fac][course])
+                      .sort()
+                      .map((sem) => (
+                        <div key={sem}>
+                          <div className="bg-gray-50 px-4 py-1.5 border-t border-gray-100">
+                            <span className="text-gray-500 font-medium text-xs">
+                              Sem {sem}
+                            </span>
+                          </div>
+                          <div className="divide-y divide-gray-50">
+                            {grouped[fac][course][sem].map((f) => {
+                              const balance =
+                                (f.amount || 0) - (f.paid_amount || 0);
+                              return (
+                                <div
+                                  key={f.id}
+                                  className="px-4 py-3 flex justify-between items-start"
+                                >
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900">
+                                      {f.student_name || "—"}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      Roll {f.roll_number || "—"} ·{" "}
+                                      {f.fee_type || "—"}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-sm font-bold text-gray-900">
+                                      ₹{f.amount}
+                                    </p>
+                                    {f.paid_amount > 0 && (
+                                      <p className="text-xs text-green-600">
+                                        Paid ₹{f.paid_amount}
+                                      </p>
+                                    )}
+                                    {balance > 0 && (
+                                      <p className="text-xs text-red-500">
+                                        Due ₹{balance}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ))}
             </div>
           ))}
         </div>
