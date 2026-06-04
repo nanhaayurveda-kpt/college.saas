@@ -331,7 +331,8 @@ export default async function DashboardPage() {
       {Object.keys(facultyCount).length > 0 && (
         <details className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
           <summary className="font-semibold text-gray-900 text-sm cursor-pointer">
-            Faculty-wise Students
+            Faculty-wise Students —{" "}
+            <span className="text-indigo-600 font-normal">click to view</span>
           </summary>
           <div className="grid grid-cols-2 gap-2 mt-3">
             {Object.entries(facultyCount).map(([faculty, count]) => (
