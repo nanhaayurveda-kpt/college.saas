@@ -348,6 +348,10 @@ export default async function DashboardPage() {
                 label: "🏗️ Fee Structure",
               },
               { href: "/professors/add", label: "👨‍🏫 Add Professor" },
+              {
+                href: `/professor-attendance?date=${today}`,
+                label: "📋 Prof. Attendance",
+              },
               { href: "/settings", label: "⚙️ Settings" },
             ].map((action) => (
               <a

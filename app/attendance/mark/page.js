@@ -13,7 +13,10 @@ export default async function MarkAttendancePage({ searchParams }) {
   const cookieStore = await cookies();
   const session = await getSession(cookieStore.get("session")?.value);
   if (!session) redirect("/login");
-  const userResult = await db.select().from(users).where(eq(users.email, session.email));
+  const userResult = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, session.email));
   const user = userResult[0];
 
   const params = await searchParams;
@@ -26,7 +29,9 @@ export default async function MarkAttendancePage({ searchParams }) {
     .from(students)
     .where(eq(students.user_id, 1));
 
-  const courses = [...new Set(allStudents.map((s) => s.course).filter(Boolean))].sort();
+  const courses = [
+    ...new Set(allStudents.map((s) => s.course).filter(Boolean)),
+  ].sort();
 
   const filteredStudents = selectedCourse
     ? allStudents.filter((s) => s.course === selectedCourse)
@@ -39,11 +44,17 @@ export default async function MarkAttendancePage({ searchParams }) {
     .where(and(eq(attendance.date, selectedDate), eq(students.user_id, 1)));
 
   const attendanceMap = {};
-  existing.forEach((a) => { attendanceMap[a.student_id] = a.status; });
+  existing.forEach((a) => {
+    attendanceMap[a.attendance.student_id] = a.attendance.status;
+  });
 
   const alreadyMarked = existing.length > 0;
-  const presentCount = filteredStudents.filter((s) => attendanceMap[s.id] === "present").length;
-  const absentCount = filteredStudents.filter((s) => attendanceMap[s.id] === "absent").length;
+  const presentCount = filteredStudents.filter(
+    (s) => attendanceMap[s.id] === "present",
+  ).length;
+  const absentCount = filteredStudents.filter(
+    (s) => attendanceMap[s.id] === "absent",
+  ).length;
 
   const grouped = {};
   filteredStudents.forEach((s) => {
@@ -67,20 +78,33 @@ export default async function MarkAttendancePage({ searchParams }) {
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="block text-xs text-gray-500 mb-1">Date</label>
-              <input type="date" name="date" defaultValue={selectedDate}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input
+                type="date"
+                name="date"
+                defaultValue={selectedDate}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
             <div className="flex-1">
               <label className="block text-xs text-gray-500 mb-1">Course</label>
-              <select name="course" defaultValue={selectedCourse}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <select
+                name="course"
+                defaultValue={selectedCourse}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
                 <option value="">All Courses</option>
-                {courses.map((c) => <option key={c} value={c}>{c}</option>)}
+                {courses.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
-          <button type="submit"
-            className="w-full bg-gray-800 text-white py-2 rounded-lg text-sm font-medium">
+          <button
+            type="submit"
+            className="w-full bg-gray-800 text-white py-2 rounded-lg text-sm font-medium"
+          >
             Filter
           </button>
         </form>
@@ -88,8 +112,11 @@ export default async function MarkAttendancePage({ searchParams }) {
 
       {alreadyMarked && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-4 text-xs text-yellow-800">
-          ⚠️ Attendance already marked for this date — edit below and save again.
-          <span className="ml-2 font-semibold">P: {presentCount} · A: {absentCount}</span>
+          ⚠️ Attendance already marked for this date — edit below and save
+          again.
+          <span className="ml-2 font-semibold">
+            P: {presentCount} · A: {absentCount}
+          </span>
         </div>
       )}
 
