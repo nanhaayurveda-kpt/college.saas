@@ -112,7 +112,11 @@ export default async function StudentDashboardPage() {
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
             <div className="text-3xl font-bold text-yellow-500">
-              {pendingFees.length}
+              ₹
+              {pendingFees.reduce(
+                (s, f) => s + ((f.amount || 0) - (f.paid_amount || 0)),
+                0,
+              )}
             </div>
             <div className="text-sm text-gray-500 mt-1">Pending Fees</div>
           </div>
@@ -123,6 +127,55 @@ export default async function StudentDashboardPage() {
             <div className="text-sm text-gray-500 mt-1">Exams Appeared</div>
           </div>
         </div>
+
+        {feeRecords.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="font-bold text-gray-800">Fee Details</h2>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {feeRecords.map((f) => {
+                const balance = (f.amount || 0) - (f.paid_amount || 0);
+                return (
+                  <div
+                    key={f.id}
+                    className="px-6 py-3 flex justify-between items-center"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {f.fee_type || "Fee"}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Due:{" "}
+                        {f.due_date
+                          ? new Date(f.due_date).toLocaleDateString("en-IN")
+                          : "—"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-gray-900">
+                        ₹{f.amount}
+                      </p>
+                      {f.paid_amount > 0 && (
+                        <p className="text-xs text-green-600">
+                          Paid ₹{f.paid_amount}
+                        </p>
+                      )}
+                      {balance > 0 && (
+                        <p className="text-xs text-red-500">Due ₹{balance}</p>
+                      )}
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${f.status === "paid" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}
+                      >
+                        {f.status}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {examResults.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
