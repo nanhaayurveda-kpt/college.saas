@@ -364,7 +364,7 @@ export default async function DashboardPage() {
               { href: `/professor-attendance?date=${today}`, label: "📋 Prof. Attendance" },
               { href: "/settings", label: "⚙️ Settings" },
             ].map((action) => (
-              
+              <a
                 key={action.href}
                 href={action.href}
                 className="flex items-center text-xs text-indigo-600 font-medium bg-indigo-50 rounded-lg px-3 py-2.5 hover:bg-indigo-100"
