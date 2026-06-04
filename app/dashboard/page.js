@@ -329,11 +329,11 @@ export default async function DashboardPage() {
 
       {/* Faculty-wise Breakdown */}
       {Object.keys(facultyCount).length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
-          <h2 className="font-semibold text-gray-900 text-sm mb-3">
+        <details className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+          <summary className="font-semibold text-gray-900 text-sm cursor-pointer">
             Faculty-wise Students
-          </h2>
-          <div className="grid grid-cols-2 gap-2">
+          </summary>
+          <div className="grid grid-cols-2 gap-2 mt-3">
             {Object.entries(facultyCount).map(([faculty, count]) => (
               <div
                 key={faculty}
@@ -348,7 +348,7 @@ export default async function DashboardPage() {
               </div>
             ))}
           </div>
-        </div>
+        </details>
       )}
 
       <AttendanceSnapshot
