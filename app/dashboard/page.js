@@ -11,12 +11,14 @@ import {
   professors,
   fees,
   attendance,
+  professor_attendance,
   exams,
   notices,
   college_settings,
   exam_forms,
   users,
 } from "@/lib/schema";
+import AttendanceSnapshot from "./AttendanceSnapshot";
 import { sql, eq, and } from "drizzle-orm";
 
 export default async function DashboardPage() {
@@ -36,8 +38,6 @@ export default async function DashboardPage() {
     [professorCount],
     [pendingFees],
     [paidFees],
-    [todayPresent],
-    [todayAbsent],
     [examCount],
     [noticeCount],
     [pendingExamForms],
@@ -65,26 +65,6 @@ export default async function DashboardPage() {
       .select({ total: sql`SUM(amount)` })
       .from(fees)
       .where(and(sql`status = 'paid'`, eq(fees.user_id, 1))),
-
-    db
-      .select({ count: sql`COUNT(*)` })
-      .from(attendance)
-      .where(
-        and(
-          eq(attendance.user_id, 1),
-          sql`date = ${today} AND status = 'present'`,
-        ),
-      ),
-
-    db
-      .select({ count: sql`COUNT(*)` })
-      .from(attendance)
-      .where(
-        and(
-          eq(attendance.user_id, 1),
-          sql`date = ${today} AND status = 'absent'`,
-        ),
-      ),
 
     db
       .select({ count: sql`COUNT(*)` })
@@ -132,6 +112,69 @@ export default async function DashboardPage() {
     const f = s.faculty || "Other";
     facultyCount[f] = (facultyCount[f] || 0) + 1;
   });
+
+  // Course+semester wise student attendance today
+  const studAttRows = await db
+    .select({
+      name: students.name,
+      course: students.course,
+      semester: students.semester,
+      status: attendance.status,
+      student_id: attendance.student_id,
+    })
+    .from(attendance)
+    .leftJoin(students, eq(attendance.student_id, students.id))
+    .where(and(eq(attendance.user_id, 1), eq(attendance.date, today)));
+
+  const semMap = {};
+  const markedStudentIds = new Set();
+  studAttRows.forEach((r) => {
+    const key = (r.course || "—") + "||" + (r.semester || "—");
+    if (!semMap[key]) semMap[key] = { present: [], absent: [], na: [] };
+    if (r.status === "present") semMap[key].present.push(r.name);
+    else if (r.status === "absent") semMap[key].absent.push(r.name);
+    markedStudentIds.add(r.student_id);
+  });
+  const allStudentsForNA = await db
+    .select({ id: students.id, name: students.name, course: students.course, semester: students.semester })
+    .from(students)
+    .where(eq(students.user_id, 1));
+  allStudentsForNA.forEach((s) => {
+    if (!markedStudentIds.has(s.id)) {
+      const key = (s.course || "—") + "||" + (s.semester || "—");
+      if (!semMap[key]) semMap[key] = { present: [], absent: [], na: [] };
+      semMap[key].na.push(s.name);
+    }
+  });
+  const semKeys = Object.keys(semMap).sort((a, b) => {
+    const [ac, as_] = a.split("||");
+    const [bc, bs] = b.split("||");
+    const cc = ac.localeCompare(bc);
+    if (cc !== 0) return cc;
+    return parseInt(as_) - parseInt(bs);
+  });
+
+  // Professor attendance today
+  const profAttRows = await db
+    .select({
+      name: professors.name,
+      professor_id: professor_attendance.professor_id,
+      status: professor_attendance.status,
+    })
+    .from(professor_attendance)
+    .leftJoin(professors, eq(professor_attendance.professor_id, professors.id))
+    .where(and(eq(professor_attendance.user_id, 1), eq(professor_attendance.date, today)));
+
+  const profPresentList = profAttRows.filter((r) => r.status === "present").map((r) => r.name);
+  const profAbsentList  = profAttRows.filter((r) => r.status === "absent").map((r) => r.name);
+  const markedProfIds   = new Set(profAttRows.map((r) => r.professor_id));
+  const allProfsForNA   = await db
+    .select({ id: professors.id, name: professors.name })
+    .from(professors)
+    .where(eq(professors.user_id, 1));
+  const profNAList = allProfsForNA
+    .filter((p) => !markedProfIds.has(p.id))
+    .map((p) => p.name);
 
   return (
     <div>
@@ -219,23 +262,6 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      {/* Attendance Alert */}
-      {Number(todayPresent?.count) === 0 &&
-        Number(todayAbsent?.count) === 0 &&
-        Number(studentCount?.count) > 0 && (
-          <Link
-            href={`/attendance/mark?date=${today}`}
-            className="block bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-5"
-          >
-            <p className="text-sm font-semibold text-indigo-800">
-              📋 Attendance not marked yet for today
-            </p>
-            <p className="text-xs text-indigo-600 font-medium mt-0.5">
-              Mark Now →
-            </p>
-          </Link>
-        )}
-
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
@@ -271,20 +297,6 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-5">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="text-2xl mb-1">🟢</div>
-          <div className="text-2xl font-bold text-green-600">
-            {todayPresent?.count || 0}
-          </div>
-          <div className="text-xs text-gray-500 mt-0.5">Present Today</div>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="text-2xl mb-1">🔴</div>
-          <div className="text-2xl font-bold text-red-500">
-            {todayAbsent?.count || 0}
-          </div>
-          <div className="text-xs text-gray-500 mt-0.5">Absent Today</div>
-        </div>
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
           <div className="text-2xl mb-1">📝</div>
           <div className="text-2xl font-bold text-gray-900">
@@ -325,6 +337,14 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      <AttendanceSnapshot
+        semMap={semMap}
+        semKeys={semKeys}
+        profPresentList={profPresentList}
+        profAbsentList={profAbsentList}
+        profNAList={profNAList}
+      />
+
       <div className="space-y-4">
         {/* Quick Actions */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -335,26 +355,16 @@ export default async function DashboardPage() {
             {[
               { href: "/students/add", label: "➕ Add Student" },
               { href: "/fees/add", label: "💰 Record Fee" },
-              {
-                href: `/attendance/mark?date=${today}`,
-                label: "✅ Attendance",
-              },
               { href: "/exam-forms", label: "📋 Exam Forms" },
               { href: "/exams/add", label: "📝 Schedule Exam" },
               { href: "/notices/add", label: "📢 Post Notice" },
               { href: "/reports", label: "📊 Reports" },
-              {
-                href: "/fee-structure/packages/add",
-                label: "🏗️ Fee Structure",
-              },
+              { href: "/fee-structure/packages/add", label: "🏗️ Fee Structure" },
               { href: "/professors/add", label: "👨‍🏫 Add Professor" },
-              {
-                href: `/professor-attendance?date=${today}`,
-                label: "📋 Prof. Attendance",
-              },
+              { href: `/professor-attendance?date=${today}`, label: "📋 Prof. Attendance" },
               { href: "/settings", label: "⚙️ Settings" },
             ].map((action) => (
-              <a
+              
                 key={action.href}
                 href={action.href}
                 className="flex items-center text-xs text-indigo-600 font-medium bg-indigo-50 rounded-lg px-3 py-2.5 hover:bg-indigo-100"

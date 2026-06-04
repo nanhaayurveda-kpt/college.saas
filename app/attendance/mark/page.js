@@ -13,6 +13,7 @@ export default async function MarkAttendancePage({ searchParams }) {
   const cookieStore = await cookies();
   const session = await getSession(cookieStore.get("session")?.value);
   if (!session) redirect("/login");
+  redirect("/dashboard");
   const userResult = await db
     .select()
     .from(users)
