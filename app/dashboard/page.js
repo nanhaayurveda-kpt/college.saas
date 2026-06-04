@@ -397,7 +397,7 @@ export default async function DashboardPage() {
                 href: "/fee-structure/packages/add",
                 label: "🏗️ Fee Structure",
               },
-              { href: "/attendance", label: "✅ Attendance" },
+              { href: "/attendance", label: "✅ Student Attendance" },
               { href: "/timetable", label: "🗓️ Timetable" },
               { href: "/professors/add", label: "👨‍🏫 Add Professor" },
               {
