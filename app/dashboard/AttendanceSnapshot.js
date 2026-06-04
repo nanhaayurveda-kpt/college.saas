@@ -10,6 +10,7 @@ export default function AttendanceSnapshot({
   profNAList,
 }) {
   const [openProf, setOpenProf] = useState(null);
+  const [openStu, setOpenStu] = useState(null);
   const [selectedSem, setSelectedSem] = useState("");
 
   const profMarked =
@@ -37,7 +38,39 @@ export default function AttendanceSnapshot({
               <p className="text-xs text-gray-400">—</p>
             ) : (
               list.map((n, i) => (
-                <p key={i} className="text-xs text-gray-800">{n}</p>
+                <p key={i} className="text-xs text-gray-800">
+                  {n}
+                </p>
+              ))
+            )}
+          </div>
+        )}
+      </button>
+    );
+  }
+  function StuBox({ keyName, label, list, color }) {
+    const isOpen = openStu === keyName;
+    return (
+      <button
+        type="button"
+        onClick={() => setOpenStu(isOpen ? null : keyName)}
+        className={`${color.bg} rounded-lg px-3 py-3 text-left w-full`}
+      >
+        <p className={`text-xs font-semibold ${color.text}`}>
+          {label} ({list.length})
+        </p>
+        <p className={`text-[10px] ${color.sub} mt-0.5`}>
+          {isOpen ? "Tap to hide" : "Tap to view"}
+        </p>
+        {isOpen && (
+          <div className="mt-2 space-y-0.5">
+            {list.length === 0 ? (
+              <p className="text-xs text-gray-400">—</p>
+            ) : (
+              list.map((n, i) => (
+                <p key={i} className="text-xs text-gray-800">
+                  {n}
+                </p>
               ))
             )}
           </div>
@@ -63,19 +96,31 @@ export default function AttendanceSnapshot({
               keyName="present"
               label="Present"
               list={profPresentList}
-              color={{ bg: "bg-green-50", text: "text-green-700", sub: "text-green-600" }}
+              color={{
+                bg: "bg-green-50",
+                text: "text-green-700",
+                sub: "text-green-600",
+              }}
             />
             <ProfBox
               keyName="absent"
               label="Absent"
               list={profAbsentList}
-              color={{ bg: "bg-red-50", text: "text-red-600", sub: "text-red-500" }}
+              color={{
+                bg: "bg-red-50",
+                text: "text-red-600",
+                sub: "text-red-500",
+              }}
             />
             <ProfBox
               keyName="na"
               label="N/A"
               list={profNAList}
-              color={{ bg: "bg-yellow-50", text: "text-yellow-700", sub: "text-yellow-600" }}
+              color={{
+                bg: "bg-yellow-50",
+                text: "text-yellow-700",
+                sub: "text-yellow-600",
+              }}
             />
           </div>
         )}
@@ -87,7 +132,9 @@ export default function AttendanceSnapshot({
           Today's Student Attendance
         </h2>
         {semKeys.length === 0 ? (
-          <p className="text-xs text-gray-400">No attendance marked yet today.</p>
+          <p className="text-xs text-gray-400">
+            No attendance marked yet today.
+          </p>
         ) : (
           <div>
             <select
@@ -101,50 +148,45 @@ export default function AttendanceSnapshot({
                 const d = semMap[key];
                 return (
                   <option key={key} value={key}>
-                    {course} Sem {sem} — P {d.present.length}, A {d.absent.length}, N/A {d.na.length}
+                    {course} Sem {sem} — P {d.present.length}, A{" "}
+                    {d.absent.length}, N/A {d.na.length}
                   </option>
                 );
               })}
             </select>
 
             {selectedSem && semMap[selectedSem] && (
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <p className="text-xs font-semibold text-green-700 mb-1">
-                    Present ({semMap[selectedSem].present.length})
-                  </p>
-                  {semMap[selectedSem].present.length === 0 ? (
-                    <p className="text-xs text-gray-400">—</p>
-                  ) : (
-                    semMap[selectedSem].present.map((n, i) => (
-                      <p key={i} className="text-xs text-gray-800">{n}</p>
-                    ))
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-red-600 mb-1">
-                    Absent ({semMap[selectedSem].absent.length})
-                  </p>
-                  {semMap[selectedSem].absent.length === 0 ? (
-                    <p className="text-xs text-gray-400">—</p>
-                  ) : (
-                    semMap[selectedSem].absent.map((n, i) => (
-                      <p key={i} className="text-xs text-gray-800">{n}</p>
-                    ))
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-yellow-700 mb-1">
-                    N/A ({semMap[selectedSem].na.length})
-                  </p>
-                  {semMap[selectedSem].na.length === 0 ? (
-                    <p className="text-xs text-gray-400">—</p>
-                  ) : (
-                    semMap[selectedSem].na.map((n, i) => (
-                      <p key={i} className="text-xs text-gray-800">{n}</p>
-                    ))
-                  )}
-                </div>
+              <div className="grid grid-cols-3 gap-2">
+                <StuBox
+                  keyName="present"
+                  label="Present"
+                  list={semMap[selectedSem].present}
+                  color={{
+                    bg: "bg-green-50",
+                    text: "text-green-700",
+                    sub: "text-green-600",
+                  }}
+                />
+                <StuBox
+                  keyName="absent"
+                  label="Absent"
+                  list={semMap[selectedSem].absent}
+                  color={{
+                    bg: "bg-red-50",
+                    text: "text-red-600",
+                    sub: "text-red-500",
+                  }}
+                />
+                <StuBox
+                  keyName="na"
+                  label="N/A"
+                  list={semMap[selectedSem].na}
+                  color={{
+                    bg: "bg-yellow-50",
+                    text: "text-yellow-700",
+                    sub: "text-yellow-600",
+                  }}
+                />
               </div>
             )}
           </div>
