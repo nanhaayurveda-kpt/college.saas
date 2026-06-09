@@ -99,7 +99,7 @@ export async function GET(request) {
     );
 
     // Single-tenant — सब allowed admins सीधे dashboard (कोई expiry/trial नहीं)
-    return redirectWithCookie(request, "/dashboard", token);
+    return redirectWithCookie(request, "/home", token);
   } catch (e) {
     console.error(e);
     return NextResponse.redirect(new URL("/login?error=failed", request.url));
