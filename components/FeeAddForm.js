@@ -258,7 +258,7 @@ export default function FeeAddForm({
             <option value="">Select Semester...</option>
             {studentPackages.map((pkg) => (
               <option key={pkg.id} value={pkg.semester || "General"}>
-                {pkg.semester || "General"} — ₹{pkg.total_amount}
+                {pkg.semester || "General"}
               </option>
             ))}
           </select>
