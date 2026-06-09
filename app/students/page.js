@@ -47,7 +47,6 @@ export default async function StudentsPage({ searchParams }) {
     return matchSearch && matchFaculty && matchYear;
   });
 
-  // Faculty → Course → Semester grouped
   const grouped = {};
   filtered.forEach((s) => {
     const fac = s.faculty || "—";
@@ -90,9 +89,6 @@ export default async function StudentsPage({ searchParams }) {
           </Link>
         </div>
       </div>
-
-      {/* Summary */}
-
 
       {/* Filter */}
       <form
@@ -157,15 +153,12 @@ export default async function StudentsPage({ searchParams }) {
         <div className="space-y-5">
           {sortedFaculties.map((fac) => {
             const courses = Object.keys(grouped[fac]).sort();
-            const facTotal = courses.reduce(
-              (sum, course) =>
-                sum +
-                Object.values(grouped[fac][course]).reduce(
-                  (s, arr) => s + arr.length,
-                  0,
-                ),
-              0,
-            );
+            const facTotal = courses.reduce((sum, course) => {
+              const sems = Object.keys(grouped[fac][course]);
+              return sum + sems.reduce((s, sem) => {
+                return s + Object.values(grouped[fac][course][sem]).reduce((s2, arr) => s2 + arr.length, 0);
+              }, 0);
+            }, 0);
             return (
               <div
                 key={fac}
@@ -229,17 +222,17 @@ export default async function StudentsPage({ searchParams }) {
                                       </p>
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-2 ml-2 shrink-0">
+                                  <div className="flex items-center gap-2 ml-2 shrink-0 self-center">
                                     <Link
                                       href={`/students/${student.id}/edit`}
-                                      className="text-xs text-indigo-600 font-medium"
+                                      className="text-xs text-indigo-600 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg"
                                     >
                                       Edit
                                     </Link>
                                     <form
                                       method="POST"
                                       action="/api/students/delete"
-                                      className="inline"
+                                      className="inline-flex items-center"
                                     >
                                       <input
                                         type="hidden"
@@ -248,7 +241,7 @@ export default async function StudentsPage({ searchParams }) {
                                       />
                                       <button
                                         type="submit"
-                                        className="text-xs text-red-500 font-medium"
+                                        className="text-xs text-red-500 font-medium bg-red-50 px-3 py-1.5 rounded-lg"
                                       >
                                         Delete
                                       </button>
