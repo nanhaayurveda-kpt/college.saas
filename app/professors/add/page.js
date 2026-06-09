@@ -44,7 +44,7 @@ export default function AddProfessorPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Qualification</label>
-              <input type="text" name="qualification" placeholder="e.g. M.Sc, Ph.D"
+              <input type="text" name="qualification" placeholder="e.g. MA, MSW, PhD"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
             <div>

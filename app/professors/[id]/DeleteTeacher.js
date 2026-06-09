@@ -2,7 +2,7 @@
 
 import { deleteTeacher } from "@/app/actions";
 
-export default function DeleteTeacher({ teacherId, teacherName }) {
+export default function DeleteProfessor({ teacherId, teacherName }) {
   return (
     <form
       method="POST" action="/api/professors/delete"
@@ -17,7 +17,7 @@ export default function DeleteTeacher({ teacherId, teacherName }) {
         type="submit"
         className="bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 text-sm font-medium"
       >
-        🗑 Delete Teacher
+        🗑 Delete Professor
       </button>
     </form>
   );

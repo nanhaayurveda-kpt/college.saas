@@ -92,26 +92,7 @@ export default async function StudentsPage({ searchParams }) {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        <div className="bg-indigo-50 rounded-lg p-3 text-center border border-indigo-100">
-          <div className="text-lg font-bold text-indigo-700">
-            {allStudents.length}
-          </div>
-          <div className="text-xs text-indigo-500">Total</div>
-        </div>
-        <div className="bg-green-50 rounded-lg p-3 text-center border border-green-100">
-          <div className="text-lg font-bold text-green-700">
-            {allStudents.filter((s) => s.fee_status === "paid").length}
-          </div>
-          <div className="text-xs text-green-500">Fees Paid</div>
-        </div>
-        <div className="bg-yellow-50 rounded-lg p-3 text-center border border-yellow-100">
-          <div className="text-lg font-bold text-yellow-700">
-            {allStudents.filter((s) => s.fee_status !== "paid").length}
-          </div>
-          <div className="text-xs text-yellow-600">Pending</div>
-        </div>
-      </div>
+
 
       {/* Filter */}
       <form

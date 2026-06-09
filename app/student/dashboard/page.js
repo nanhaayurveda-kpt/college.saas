@@ -66,10 +66,10 @@ export default async function StudentDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-green-900 text-white px-6 py-4 flex justify-between items-center">
-        <div className="font-bold text-lg">Ayurveda College — Student Portal</div>
+      <nav className="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center">
+        <div className="font-bold text-lg">Nishant PG College — Student Portal</div>
         <div className="flex items-center gap-4">
-          <span className="text-green-200 text-sm">{student.name}</span>
+          <span className="text-indigo-200 text-sm">{student.name}</span>
           <a href="/api/student/logout" className="text-red-300 text-sm hover:text-red-100">
             Logout
           </a>
@@ -86,16 +86,16 @@ export default async function StudentDashboardPage() {
               <img
                 src={student.photo_url}
                 alt={student.name}
-                className="w-16 h-16 rounded-full object-cover border-2 border-green-200 shrink-0"
+                className="w-16 h-16 rounded-full object-cover border-2 border-indigo-200 shrink-0"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-2xl shrink-0">
+              <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-2xl shrink-0">
                 👤
               </div>
             )}
             <div>
               <p className="text-base font-bold text-gray-900">{student.name}</p>
-              <p className="text-sm text-green-600">{student.course} — {student.semester}</p>
+              <p className="text-sm text-indigo-600">{student.course} — {student.semester}</p>
               <p className="text-xs text-gray-500 mt-0.5">Roll No: {student.roll_number}</p>
             </div>
           </div>
@@ -130,7 +130,7 @@ export default async function StudentDashboardPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-            <div className={`text-2xl font-bold ${Number(attendancePercent) >= 75 ? "text-green-600" : "text-red-500"}`}>
+            <div className={`text-2xl font-bold ${Number(attendancePercent) >= 75 ? "text-indigo-600" : "text-red-500"}`}>
               {attendancePercent}%
             </div>
             <div className="text-xs text-gray-500 mt-1">Attendance</div>
@@ -143,7 +143,7 @@ export default async function StudentDashboardPage() {
             <div className="text-xs text-gray-500 mt-1">Pending Fees</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{examResults.length}</div>
+            <div className="text-2xl font-bold text-indigo-600">{examResults.length}</div>
             <div className="text-xs text-gray-500 mt-1">Exams</div>
           </div>
         </div>
@@ -167,10 +167,10 @@ export default async function StudentDashboardPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-gray-900">₹{f.amount}</p>
-                      {f.paid_amount > 0 && <p className="text-xs text-green-600">Paid ₹{f.paid_amount}</p>}
+                      {f.paid_amount > 0 && <p className="text-xs text-indigo-600">Paid ₹{f.paid_amount}</p>}
                       {balance > 0 && <p className="text-xs text-red-500">Due ₹{balance}</p>}
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        f.status === "paid" ? "bg-green-100 text-green-700" :
+                        f.status === "paid" ? "bg-indigo-100 text-indigo-700" :
                         f.status === "partial" ? "bg-blue-100 text-blue-700" :
                         "bg-yellow-100 text-yellow-700"
                       }`}>
@@ -200,7 +200,7 @@ export default async function StudentDashboardPage() {
                   <div className="text-right">
                     <p className="text-sm font-bold text-gray-900">{r.marks_obtained}/{r.max_marks}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      r.grade === "A+" || r.grade === "A" ? "bg-green-100 text-green-700" :
+                      r.grade === "A+" || r.grade === "A" ? "bg-indigo-100 text-indigo-700" :
                       r.grade === "B" ? "bg-blue-100 text-blue-700" :
                       r.grade === "C" ? "bg-yellow-100 text-yellow-700" :
                       "bg-red-100 text-red-700"
