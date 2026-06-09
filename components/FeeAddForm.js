@@ -76,59 +76,6 @@ export default function FeeAddForm({
     loadForStudent(id);
   }
 
-  function toggleSemester(semesterVal) {
-    const pkg = packages.find(
-      (p) =>
-        p.semester === semesterVal &&
-        p.course ===
-          allStudents.find((s) => s.id === selectedStudentId)?.course,
-    );
-
-    setSelectedSemesters((prev) => {
-      if (prev.includes(semesterVal)) {
-        setSemesterItems((si) => {
-          const u = { ...si };
-          delete u[semesterVal];
-          return u;
-        });
-        setSemesterChecked((sc) => {
-          const u = { ...sc };
-          delete u[semesterVal];
-          return u;
-        });
-        setCustomItems((ci) => ci.filter((it) => it.semester !== semesterVal));
-        return prev.filter((s) => s !== semesterVal);
-      } else {
-        if (pkg && pkg.items) {
-          const items = {};
-          const checked = {};
-          const custom = [];
-          for (const item of pkg.items) {
-            if (FIXED_SLUGS.has(item.fee_type)) {
-              items[item.fee_type] = String(item.amount);
-              checked[item.fee_type] = true;
-            } else {
-              custom.push({
-                semester: semesterVal,
-                name:
-                  item.label ||
-                  item.fee_type
-                    .replace(/_/g, " ")
-                    .replace(/\b\w/g, (c) => c.toUpperCase()),
-                slug: item.fee_type,
-                amount: String(item.amount),
-              });
-            }
-          }
-          setSemesterItems((si) => ({ ...si, [semesterVal]: items }));
-          setSemesterChecked((sc) => ({ ...sc, [semesterVal]: checked }));
-          setCustomItems((prev) => [...prev, ...custom]);
-        }
-        return [...prev, semesterVal];
-      }
-    });
-  }
-
   function toggleItem(sem, feeType) {
     setSemesterChecked((sc) => ({
       ...sc,
@@ -257,86 +204,110 @@ export default function FeeAddForm({
       {selectedStudentId !== "" && studentPackages.length > 0 && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Semesters <span className="text-red-500">*</span>
+            Select Semester <span className="text-red-500">*</span>
           </label>
-          <div className="space-y-3">
-            {studentPackages.map((pkg) => {
-              const sem = pkg.semester || "General";
-              const checked = selectedSemesters.includes(sem);
-              const items = semesterItems[sem] || {};
-              return (
-                <div
-                  key={pkg.id}
-                  className={`border rounded-xl overflow-hidden ${checked ? "border-indigo-400" : "border-gray-200"}`}
-                >
+
+          <select
+            value={selectedSemesters[0] || ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (!val) {
+                setSelectedSemesters([]);
+                setSemesterItems({});
+                setSemesterChecked({});
+                setCustomItems([]);
+                return;
+              }
+              const pkg = packages.find(
+                (p) =>
+                  p.semester === val &&
+                  p.course ===
+                    allStudents.find((s) => s.id === selectedStudentId)?.course,
+              );
+              setSelectedSemesters([val]);
+              if (pkg && pkg.items) {
+                const items = {};
+                const custom = [];
+                for (const item of pkg.items) {
+                  if (FIXED_SLUGS.has(item.fee_type)) {
+                    items[item.fee_type] = String(item.amount);
+                  } else {
+                    custom.push({
+                      semester: val,
+                      name:
+                        item.label ||
+                        item.fee_type
+                          .replace(/_/g, " ")
+                          .replace(/\b\w/g, (c) => c.toUpperCase()),
+                      slug: item.fee_type,
+                      amount: String(item.amount),
+                    });
+                  }
+                }
+                setSemesterItems({ [val]: items });
+                setSemesterChecked({});
+                setCustomItems(custom);
+              } else {
+                setSemesterItems({});
+                setSemesterChecked({});
+                setCustomItems([]);
+              }
+            }}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Select Semester...</option>
+            {studentPackages.map((pkg) => (
+              <option key={pkg.id} value={pkg.semester || "General"}>
+                {pkg.semester || "General"} — ₹{pkg.total_amount}
+              </option>
+            ))}
+          </select>
+          {selectedSemesters[0] && (
+            <div className="space-y-1.5 mt-3">
+              {FIXED_TYPES.map((ft) => {
+                const items = semesterItems[selectedSemesters[0]] || {};
+                if (!(ft.value in items)) return null;
+                const isChecked =
+                  !!semesterChecked[selectedSemesters[0]]?.[ft.value];
+                const sem = selectedSemesters[0];
+                return (
                   <div
-                    className={`px-3 py-2.5 flex items-center gap-3 cursor-pointer ${checked ? "bg-indigo-50" : "bg-white"}`}
-                    onClick={() => toggleSemester(sem)}
+                    key={ft.value}
+                    className={`border rounded-lg px-3 py-2.5 flex items-center gap-3 ${isChecked ? "border-indigo-400 bg-indigo-50" : "border-gray-200"}`}
                   >
                     <input
                       type="checkbox"
-                      checked={checked}
-                      readOnly
+                      checked={isChecked}
+                      onChange={() => toggleItem(sem, ft.value)}
                       className="w-4 h-4 accent-indigo-600"
                     />
-                    <span className="text-sm font-medium text-gray-700">
-                      {sem}
+                    {isChecked && (
+                      <input
+                        type="hidden"
+                        name={`sem_${sem}_fee_type_${ft.value}`}
+                        value={ft.value}
+                      />
+                    )}
+                    <span className="flex-1 text-sm text-gray-700">
+                      {ft.label}
                     </span>
-                    <span className="text-xs text-gray-400 ml-auto">
-                      ₹{pkg.total_amount}
-                    </span>
+                    <input
+                      type="number"
+                      name={`sem_${sem}_amount_${ft.value}`}
+                      value={items[ft.value] || ""}
+                      onChange={(e) =>
+                        updateSemesterAmount(sem, ft.value, e.target.value)
+                      }
+                      min="1"
+                      placeholder="₹"
+                      disabled={!isChecked}
+                      className={`w-24 border rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-indigo-500 ${!isChecked ? "bg-gray-100 border-gray-200 text-gray-400" : "border-gray-300"}`}
+                    />
                   </div>
-                  {checked && (
-                    <div className="px-3 pb-3 pt-1 space-y-2 bg-indigo-50">
-                      {FIXED_TYPES.map((ft) => {
-                        if (!(ft.value in items)) return null;
-                        const isChecked = !!semesterChecked[sem]?.[ft.value];
-                        return (
-                          <div
-                            key={ft.value}
-                            className="flex items-center gap-3"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => toggleItem(sem, ft.value)}
-                              className="w-4 h-4 accent-indigo-600"
-                            />
-                            {isChecked && (
-                              <input
-                                type="hidden"
-                                name={`sem_${sem}_fee_type_${ft.value}`}
-                                value={ft.value}
-                              />
-                            )}
-                            <span className="flex-1 text-xs text-gray-600">
-                              {ft.label}
-                            </span>
-                            <input
-                              type="number"
-                              name={`sem_${sem}_amount_${ft.value}`}
-                              value={items[ft.value] || ""}
-                              onChange={(e) =>
-                                updateSemesterAmount(
-                                  sem,
-                                  ft.value,
-                                  e.target.value,
-                                )
-                              }
-                              min="1"
-                              placeholder="₹"
-                              disabled={!isChecked}
-                              className={`w-24 border rounded-lg px-2 py-1.5 text-xs text-right focus:outline-none focus:ring-2 focus:ring-indigo-500 ${!isChecked ? "bg-gray-100 border-gray-200 text-gray-400" : "border-gray-300"}`}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
           <input
             type="hidden"
             name="selected_semesters"
@@ -509,7 +480,10 @@ export default function FeeAddForm({
         <button
           type="submit"
           disabled={
-            submitting || selectedSemesters.length === 0 || !selectedStudentId
+            submitting ||
+            !selectedSemesters[0] ||
+            grossTotal === 0 ||
+            !selectedStudentId
           }
           className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
