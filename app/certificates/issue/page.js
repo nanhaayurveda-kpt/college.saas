@@ -27,10 +27,7 @@ export default async function IssueCertificatePage({ searchParams }) {
         .select()
         .from(students)
         .where(
-          and(
-            eq(students.course, selectedCourse),
-            eq(students.user_id, 1),
-          ),
+          and(eq(students.course, selectedCourse), eq(students.user_id, 1)),
         )
         .orderBy(students.name)
     : await db
@@ -84,7 +81,11 @@ export default async function IssueCertificatePage({ searchParams }) {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <form method="POST" action="/api/certificates/issue" className="space-y-4">
+        <form
+          method="POST"
+          action="/api/certificates/issue"
+          className="space-y-4"
+        >
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Student <span className="text-red-500">*</span>
@@ -154,6 +155,7 @@ export default async function IssueCertificatePage({ searchParams }) {
                 Auto — e.g. TC/2026/001
               </div>
             </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Conduct

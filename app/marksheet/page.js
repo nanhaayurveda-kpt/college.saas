@@ -155,7 +155,7 @@ export default async function MarksheetPage({ searchParams }) {
           <p className="text-xs font-medium text-gray-500 mb-2">Quick Access</p>
           <div className="grid grid-cols-2 gap-2">
             {courses.map((c) => (
-              
+              <a
                 key={c}
                 href={`/marksheet/view?course=${c}&type=annual`}
                 className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm text-center"

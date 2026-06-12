@@ -9,7 +9,6 @@ import { users } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import AddPeriodForm from "./AddPeriodForm";
 import { COURSES } from "@/lib/courses";
-import ResetForm from "./ResetForm";
 
 export default async function AddPeriodPage({ searchParams }) {
   const cookieStore = await cookies();
