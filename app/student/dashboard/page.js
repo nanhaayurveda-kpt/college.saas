@@ -11,7 +11,7 @@ import {
   exams,
   notices,
 } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export default async function StudentDashboardPage() {
   const cookieStore = await cookies();
@@ -49,7 +49,7 @@ export default async function StudentDashboardPage() {
     .select()
     .from(notices)
     .where(eq(notices.user_id, student.user_id))
-    .orderBy(notices.created_at)
+    .orderBy(desc(notices.created_at))
     .limit(5);
 
   const examResults = await db
@@ -67,17 +67,21 @@ export default async function StudentDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center">
-        <div className="font-bold text-lg">Nishant PG College — Student Portal</div>
+        <div className="font-bold text-lg">
+          Nishant PG College — Student Portal
+        </div>
         <div className="flex items-center gap-4">
           <span className="text-indigo-200 text-sm">{student.name}</span>
-          <a href="/api/student/logout" className="text-red-300 text-sm hover:text-red-100">
+          <a
+            href="/api/student/logout"
+            className="text-red-300 text-sm hover:text-red-100"
+          >
             Logout
           </a>
         </div>
       </nav>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-
         {/* Profile */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <h2 className="text-base font-bold text-gray-800 mb-4">Profile</h2>
@@ -94,16 +98,24 @@ export default async function StudentDashboardPage() {
               </div>
             )}
             <div>
-              <p className="text-base font-bold text-gray-900">{student.name}</p>
-              <p className="text-sm text-indigo-600">{student.course} — {student.semester}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Roll No: {student.roll_number}</p>
+              <p className="text-base font-bold text-gray-900">
+                {student.name}
+              </p>
+              <p className="text-sm text-indigo-600">
+                {student.course} — {student.semester}
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Roll No: {student.roll_number}
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm border-t border-gray-100 pt-3">
             {student.father_name && (
               <div>
                 <span className="text-gray-400 text-xs">Father</span>
-                <p className="font-medium text-gray-800">{student.father_name}</p>
+                <p className="font-medium text-gray-800">
+                  {student.father_name}
+                </p>
               </div>
             )}
             {student.phone && (
@@ -115,13 +127,17 @@ export default async function StudentDashboardPage() {
             {student.admission_no && (
               <div>
                 <span className="text-gray-400 text-xs">Admission No</span>
-                <p className="font-medium text-gray-800">{student.admission_no}</p>
+                <p className="font-medium text-gray-800">
+                  {student.admission_no}
+                </p>
               </div>
             )}
             {student.academic_year && (
               <div>
                 <span className="text-gray-400 text-xs">Academic Year</span>
-                <p className="font-medium text-gray-800">{student.academic_year}</p>
+                <p className="font-medium text-gray-800">
+                  {student.academic_year}
+                </p>
               </div>
             )}
           </div>
@@ -130,20 +146,30 @@ export default async function StudentDashboardPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-            <div className={`text-2xl font-bold ${Number(attendancePercent) >= 75 ? "text-indigo-600" : "text-red-500"}`}>
+            <div
+              className={`text-2xl font-bold ${Number(attendancePercent) >= 75 ? "text-indigo-600" : "text-red-500"}`}
+            >
               {attendancePercent}%
             </div>
             <div className="text-xs text-gray-500 mt-1">Attendance</div>
-            <div className="text-xs text-gray-400">{presentDays}/{totalDays} days</div>
+            <div className="text-xs text-gray-400">
+              {presentDays}/{totalDays} days
+            </div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
             <div className="text-2xl font-bold text-yellow-500">
-              ₹{pendingFees.reduce((s, f) => s + ((f.amount || 0) - (f.paid_amount || 0)), 0)}
+              ₹
+              {pendingFees.reduce(
+                (s, f) => s + ((f.amount || 0) - (f.paid_amount || 0)),
+                0,
+              )}
             </div>
             <div className="text-xs text-gray-500 mt-1">Pending Fees</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-            <div className="text-2xl font-bold text-indigo-600">{examResults.length}</div>
+            <div className="text-2xl font-bold text-indigo-600">
+              {examResults.length}
+            </div>
             <div className="text-xs text-gray-500 mt-1">Exams</div>
           </div>
         </div>
@@ -158,22 +184,44 @@ export default async function StudentDashboardPage() {
               {feeRecords.map((f) => {
                 const balance = (f.amount || 0) - (f.paid_amount || 0);
                 return (
-                  <div key={f.id} className="px-5 py-3 flex justify-between items-center">
+                  <div
+                    key={f.id}
+                    className="px-5 py-3 flex justify-between items-center"
+                  >
                     <div>
-                      <p className="text-sm font-medium text-gray-900 capitalize">{f.fee_type || "Fee"}</p>
+                      <p className="text-sm font-medium text-gray-900 capitalize">
+                        {f.fee_type || "Fee"}
+                      </p>
                       <p className="text-xs text-gray-400">
-                        Due: {f.due_date ? new Date(Number(f.due_date) * 1000).toLocaleDateString("en-IN") : "—"}
+                        Due:{" "}
+                        {f.due_date
+                          ? new Date(
+                              Number(f.due_date) * 1000,
+                            ).toLocaleDateString("en-IN")
+                          : "—"}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-gray-900">₹{f.amount}</p>
-                      {f.paid_amount > 0 && <p className="text-xs text-indigo-600">Paid ₹{f.paid_amount}</p>}
-                      {balance > 0 && <p className="text-xs text-red-500">Due ₹{balance}</p>}
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        f.status === "paid" ? "bg-indigo-100 text-indigo-700" :
-                        f.status === "partial" ? "bg-blue-100 text-blue-700" :
-                        "bg-yellow-100 text-yellow-700"
-                      }`}>
+                      <p className="text-sm font-bold text-gray-900">
+                        ₹{f.amount}
+                      </p>
+                      {f.paid_amount > 0 && (
+                        <p className="text-xs text-indigo-600">
+                          Paid ₹{f.paid_amount}
+                        </p>
+                      )}
+                      {balance > 0 && (
+                        <p className="text-xs text-red-500">Due ₹{balance}</p>
+                      )}
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          f.status === "paid"
+                            ? "bg-indigo-100 text-indigo-700"
+                            : f.status === "partial"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
                         {f.status}
                       </span>
                     </div>
@@ -192,19 +240,31 @@ export default async function StudentDashboardPage() {
             </div>
             <div className="divide-y divide-gray-100">
               {examResults.map((r, i) => (
-                <div key={i} className="px-5 py-3 flex justify-between items-center">
+                <div
+                  key={i}
+                  className="px-5 py-3 flex justify-between items-center"
+                >
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{r.exam_name}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {r.exam_name}
+                    </p>
                     <p className="text-xs text-gray-500">{r.subject}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-gray-900">{r.marks_obtained}/{r.max_marks}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      r.grade === "A+" || r.grade === "A" ? "bg-indigo-100 text-indigo-700" :
-                      r.grade === "B" ? "bg-blue-100 text-blue-700" :
-                      r.grade === "C" ? "bg-yellow-100 text-yellow-700" :
-                      "bg-red-100 text-red-700"
-                    }`}>
+                    <p className="text-sm font-bold text-gray-900">
+                      {r.marks_obtained}/{r.max_marks}
+                    </p>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        r.grade === "A+" || r.grade === "A"
+                          ? "bg-indigo-100 text-indigo-700"
+                          : r.grade === "B"
+                            ? "bg-blue-100 text-blue-700"
+                            : r.grade === "C"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-red-100 text-red-700"
+                      }`}
+                    >
                       {r.grade}
                     </span>
                   </div>

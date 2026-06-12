@@ -17,6 +17,7 @@ import PrintButton from "./PrintButton";
 export default async function MarksheetViewPage({ searchParams }) {
   const params = await searchParams;
   const selectedCourse = params?.course || "";
+  const selectedSemester = params?.semester || "";
   const selectedType = params?.type || "";
   const selectedYear = params?.year || "";
 
@@ -41,12 +42,17 @@ export default async function MarksheetViewPage({ searchParams }) {
     .where(eq(college_settings.user_id, 1));
   const college = settingsRows[0] || {};
 
+  const studentConditions = [
+    eq(students.course, selectedCourse),
+    eq(students.user_id, 1),
+  ];
+  if (selectedSemester)
+    studentConditions.push(eq(students.semester, selectedSemester));
+
   const courseStudents = await db
     .select()
     .from(students)
-    .where(
-      and(eq(students.course, selectedCourse), eq(students.user_id, 1)),
-    )
+    .where(and(...studentConditions))
     .orderBy(students.roll_number, students.name);
 
   if (courseStudents.length === 0) {
@@ -73,6 +79,7 @@ export default async function MarksheetViewPage({ searchParams }) {
     eq(exams.exam_type, selectedType),
     eq(exams.user_id, 1),
   ];
+  if (selectedSemester) conditions.push(eq(exams.semester, selectedSemester));
   if (selectedYear) conditions.push(eq(exams.academic_year, selectedYear));
 
   const courseExams = await db
@@ -164,6 +171,7 @@ export default async function MarksheetViewPage({ searchParams }) {
           )}
           <h3 className="text-sm font-bold text-gray-800 mt-2 underline underline-offset-2">
             {examTypeLabel[selectedType] || selectedType} — {selectedCourse}
+            {selectedSemester ? ` · ${selectedSemester}` : ""}
             {selectedYear ? ` (${selectedYear})` : ""}
           </h3>
         </div>

@@ -12,11 +12,15 @@ export async function POST(request) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+    return NextResponse.redirect(new URL("/login", request.url), {
+      status: 303,
+    });
   }
   const session = await getSession(token);
   if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+    return NextResponse.redirect(new URL("/login", request.url), {
+      status: 303,
+    });
   }
 
   const userResult = await db
@@ -25,7 +29,9 @@ export async function POST(request) {
     .where(eq(schema.users.email, session.email));
   const user = userResult[0];
   if (!user) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+    return NextResponse.redirect(new URL("/login", request.url), {
+      status: 303,
+    });
   }
 
   // ─── Parse form ────────────────────────────────────────────────────────
@@ -37,7 +43,9 @@ export async function POST(request) {
 
   if (!title || !content) {
     await setFlash("error", "Title and content are required");
-    return NextResponse.redirect(new URL("/notices/add", request.url), { status: 303 });
+    return NextResponse.redirect(new URL("/notices/add", request.url), {
+      status: 303,
+    });
   }
 
   // ─── Duplicate check: same title + content in last 5 minutes ───────────
@@ -61,7 +69,9 @@ export async function POST(request) {
       "error",
       "This notice was just posted a moment ago. Please wait or change the content.",
     );
-    return NextResponse.redirect(new URL("/notices", request.url), { status: 303 });
+    return NextResponse.redirect(new URL("/notices", request.url), {
+      status: 303,
+    });
   }
 
   // ─── Insert ────────────────────────────────────────────────────────────
@@ -71,8 +81,11 @@ export async function POST(request) {
     category,
     priority,
     user_id: 1,
+    created_at: new Date(),
   });
 
   await setFlash("success", "Notice posted successfully!");
-  return NextResponse.redirect(new URL("/notices", request.url), { status: 303 });
+  return NextResponse.redirect(new URL("/notices", request.url), {
+    status: 303,
+  });
 }
