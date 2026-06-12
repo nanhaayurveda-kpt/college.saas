@@ -88,6 +88,13 @@ export default async function CertificatePrintPage({ params }) {
       })
     : "—";
 
+  // Gender-based pronouns (Mahila college में सब She/Her आएँगे)
+  const isFemale = cert.gender?.toLowerCase().startsWith("f");
+  const HeShe = isFemale ? "She" : cert.gender ? "He" : "He/She";
+  const hisHer = isFemale ? "her" : cert.gender ? "his" : "his/her";
+  const HisHer = isFemale ? "Her" : cert.gender ? "His" : "His/Her";
+  const himHer = isFemale ? "her" : cert.gender ? "him" : "him/her";
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6 print:hidden">
@@ -159,7 +166,7 @@ export default async function CertificatePrintPage({ params }) {
                 of this college.
               </p>
               <p>
-                He/She was enrolled in <strong>{cert.student_course}</strong>
+                {HeShe} was enrolled in <strong>{cert.student_course}</strong>
                 {cert.student_semester
                   ? `, Semester ${cert.student_semester}`
                   : ""}
@@ -176,12 +183,12 @@ export default async function CertificatePrintPage({ params }) {
                 </p>
               )}
               <p>
-                His/Her conduct during the stay in the college was{" "}
+                {HisHer} conduct during the stay in the college was{" "}
                 <strong>{cert.conduct || "Good"}</strong>.
               </p>
               <p>
-                This certificate is issued on his/her request for the purpose of{" "}
-                <strong>{cert.reason || "further studies"}</strong>.
+                This certificate is issued on {hisHer} request for the purpose
+                of <strong>{cert.reason || "further studies"}</strong>.
               </p>
             </>
           )}
@@ -201,9 +208,9 @@ export default async function CertificatePrintPage({ params }) {
                 at this college.
               </p>
               <p>
-                To the best of our knowledge, his/her character and conduct have
-                been <strong>{cert.conduct || "Good"}</strong> throughout
-                his/her stay in this institution.
+                To the best of our knowledge, {hisHer} character and conduct
+                have been <strong>{cert.conduct || "Good"}</strong> throughout{" "}
+                {hisHer} stay in this institution.
               </p>
               {cert.custom_content && <p>{cert.custom_content}</p>}
             </>
@@ -220,7 +227,7 @@ export default async function CertificatePrintPage({ params }) {
                 student of this college.
               </p>
               <p>
-                He/She is currently enrolled in{" "}
+                {HeShe} is currently enrolled in{" "}
                 <strong>{cert.student_course}</strong>
                 {cert.student_semester
                   ? `, Semester ${cert.student_semester}`
@@ -242,7 +249,7 @@ export default async function CertificatePrintPage({ params }) {
               )}
               {cert.admission_no && (
                 <p>
-                  Scholar No: <strong>{cert.admission_no}</strong>
+                  Admission No: <strong>{cert.admission_no}</strong>
                 </p>
               )}
               {cert.custom_content && <p>{cert.custom_content}</p>}
@@ -274,8 +281,9 @@ export default async function CertificatePrintPage({ params }) {
                 </p>
               )}
               <p>
-                He/She has no dues pending against him/her in this institution.
-                His/Her conduct was <strong>{cert.conduct || "Good"}</strong>.
+                {HeShe} has no dues pending against {himHer} in this
+                institution. {HisHer} conduct was{" "}
+                <strong>{cert.conduct || "Good"}</strong>.
               </p>
               {cert.reason && (
                 <p>
@@ -317,7 +325,7 @@ export default async function CertificatePrintPage({ params }) {
                 </td>
               </tr>
               <tr>
-                <td className="px-4 py-2 text-gray-500">Scholar No.</td>
+                <td className="px-4 py-2 text-gray-500">Admission No.</td>
                 <td className="px-4 py-2 font-medium text-gray-900">
                   {cert.admission_no || "—"}
                 </td>
@@ -352,7 +360,6 @@ export default async function CertificatePrintPage({ params }) {
         <div className="flex justify-between items-end mt-10">
           <div className="text-xs text-gray-400">
             <p>Date of Issue: {issueDate}</p>
-            <p className="mt-6">Nishant PG College Software</p>
           </div>
           <div className="text-center text-xs text-gray-500">
             <div className="border-t border-gray-400 w-40 mb-1" />

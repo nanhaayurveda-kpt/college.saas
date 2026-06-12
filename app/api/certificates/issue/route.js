@@ -2,10 +2,17 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, like } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 import { setFlash } from "@/lib/flash";
+
+const SERIAL_PREFIX = {
+  tc: "TC",
+  character: "CC",
+  bonafide: "BC",
+  migration: "MC",
+};
 
 export async function POST(request) {
   // ─── Auth ──────────────────────────────────────────────────────────────
@@ -34,7 +41,6 @@ export async function POST(request) {
   const student_id = parseInt(studentIdRaw, 10);
   const cert_type = formData.get("cert_type");
   const issue_date = formData.get("issue_date");
-  const serial_no = formData.get("serial_no") || null;
   const reason = formData.get("reason") || null;
   const last_course = formData.get("last_course") || null;
   const last_exam_passed = formData.get("last_exam_passed") || null;
@@ -65,27 +71,7 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/students", request.url), { status: 303 });
   }
 
-  // ─── Duplicate check 1: serial_no must be unique per user (if given) ───
-  if (serial_no) {
-    const serialConflict = await db
-      .select()
-      .from(schema.certificates)
-      .where(
-        and(
-          eq(schema.certificates.user_id, 1),
-          eq(schema.certificates.serial_no, serial_no),
-        ),
-      );
-    if (serialConflict.length > 0) {
-      await setFlash(
-        "error",
-        `Serial No. ${serial_no} is already used by another certificate.`,
-      );
-      return NextResponse.redirect(new URL("/certificates", request.url), { status: 303 });
-    }
-  }
-
-  // ─── Duplicate check 2: same student + cert_type + issue_date ──────────
+  // ─── Duplicate check: same student + cert_type + issue_date ────────────
   // Prevents accidental re-issue of the same certificate on the same day
   const conditions = [
     eq(schema.certificates.user_id, 1),
@@ -105,6 +91,28 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/certificates", request.url), { status: 303 });
   }
 
+  // ─── Auto serial: TC/2026/001 — type+year के हिसाब से अगला नंबर ─────────
+  const prefix = SERIAL_PREFIX[cert_type] || "CERT";
+  const year = String(issue_date).slice(0, 4);
+  const serialBase = `${prefix}/${year}/`;
+
+  const existingSerials = await db
+    .select({ serial_no: schema.certificates.serial_no })
+    .from(schema.certificates)
+    .where(
+      and(
+        eq(schema.certificates.user_id, 1),
+        like(schema.certificates.serial_no, `${serialBase}%`),
+      ),
+    );
+
+  let maxNum = 0;
+  existingSerials.forEach((row) => {
+    const num = parseInt(String(row.serial_no).slice(serialBase.length), 10);
+    if (!isNaN(num) && num > maxNum) maxNum = num;
+  });
+  const serial_no = `${serialBase}${String(maxNum + 1).padStart(3, "0")}`;
+
   // ─── Insert ────────────────────────────────────────────────────────────
   await db.insert(schema.certificates).values({
     student_id,
@@ -119,6 +127,6 @@ export async function POST(request) {
     user_id: 1,
   });
 
-  await setFlash("success", "Certificate issued successfully!");
+  await setFlash("success", `Certificate issued! Serial No: ${serial_no}`);
   return NextResponse.redirect(new URL("/certificates", request.url), { status: 303 });
 }

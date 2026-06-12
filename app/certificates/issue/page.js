@@ -5,7 +5,8 @@ import { students, users } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";export default async function IssueCertificatePage({ searchParams }) {
+import { redirect } from "next/navigation";
+export default async function IssueCertificatePage({ searchParams }) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) redirect("/login");
@@ -149,15 +150,10 @@ import { redirect } from "next/navigation";export default async function IssueC
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Serial No
               </label>
-              <input
-                type="text"
-                name="serial_no"
-                placeholder="e.g. TC/2024/001"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
+              <div className="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-500">
+                Auto — e.g. TC/2026/001
+              </div>
             </div>
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Conduct

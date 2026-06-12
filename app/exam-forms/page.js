@@ -6,7 +6,8 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";export default async function ExamFormsPage({ searchParams }) {
+import { redirect } from "next/navigation";
+export default async function ExamFormsPage({ searchParams }) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   if (!token) redirect("/login");
@@ -215,21 +216,11 @@ import { redirect } from "next/navigation";export default async function ExamFo
                     </>
                   )}
                   {form.form_status !== "pending" && (
-                    <form method="POST" action="/api/exam-forms/update-status">
-                      <input type="hidden" name="id" value={form.id} />
-                      <input type="hidden" name="form_status" value="pending" />
-                      <input
-                        type="hidden"
-                        name="exam_fee_paid"
-                        value={form.exam_fee_paid ? "1" : "0"}
-                      />
-                      <button
-                        type="submit"
-                        className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg"
-                      >
-                        Reset
-                      </button>
-                    </form>
+                    <ResetForm
+                      id={form.id}
+                      examFeePaid={form.exam_fee_paid}
+                      studentName={form.student_name}
+                    />
                   )}
                 </div>
               </div>
