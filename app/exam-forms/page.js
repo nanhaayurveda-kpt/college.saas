@@ -39,7 +39,7 @@ export default async function ExamFormsPage({ searchParams }) {
     })
     .from(exam_forms)
     .leftJoin(students, eq(exam_forms.student_id, students.id))
-    .where(eq(exam_forms.user_id, 1))
+    
     .orderBy(exam_forms.submitted_date);
 
   const filtered = filterStatus

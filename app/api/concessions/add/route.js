@@ -66,7 +66,6 @@ export async function POST(request) {
     .where(
       and(
         eq(schema.students.id, student_id),
-        eq(schema.students.user_id, 1),
       ),
     );
   if (!studentCheck.length) {
@@ -80,7 +79,6 @@ export async function POST(request) {
     .from(schema.fee_concessions)
     .where(
       and(
-        eq(schema.fee_concessions.user_id, 1),
         eq(schema.fee_concessions.student_id, student_id),
       ),
     );
@@ -101,7 +99,6 @@ export async function POST(request) {
     reason,
     discount_type,
     discount_value,
-    user_id: 1,
     created_at: new Date(),
   });
 

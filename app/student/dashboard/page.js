@@ -48,7 +48,7 @@ export default async function StudentDashboardPage() {
   const allNotices = await db
     .select()
     .from(notices)
-    .where(eq(notices.user_id, student.user_id))
+    
     .orderBy(desc(notices.created_at))
     .limit(5);
 

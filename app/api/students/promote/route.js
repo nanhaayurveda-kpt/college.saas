@@ -61,7 +61,6 @@ export async function POST(request) {
       and(
         inArray(schema.students.id, student_ids),
         eq(schema.students.semester, from_semester),
-        eq(schema.students.user_id, 1),
       ),
     );
 
@@ -81,7 +80,6 @@ export async function POST(request) {
     .where(
       and(
         inArray(schema.students.id, toPromote.map((s) => s.id)),
-        eq(schema.students.user_id, 1),
       ),
     );
 

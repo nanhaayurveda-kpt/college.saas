@@ -55,7 +55,6 @@ export async function POST(request) {
     .from(students)
     .where(
       and(
-        eq(students.user_id, professor.user_id),
         eq(students.faculty, faculty),
         eq(students.course, course),
         eq(students.semester, semester || ""),
@@ -80,7 +79,6 @@ export async function POST(request) {
       .from(students)
       .where(
         and(
-          eq(students.user_id, professor.user_id),
           eq(students.admission_no, admission_no),
         ),
       );
@@ -119,7 +117,6 @@ export async function POST(request) {
     address: formData.get("address") || null,
     academic_year: formData.get("academic_year") || null,
     fee_status: formData.get("fee_status") || "pending",
-    user_id: professor.user_id,
   });
 
   await setFlash("success", "Student added successfully!");

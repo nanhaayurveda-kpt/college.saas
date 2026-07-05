@@ -33,7 +33,7 @@ export async function POST(request) {
 
   await db
     .delete(certificates)
-    .where(and(eq(certificates.id, id), eq(certificates.user_id, 1)));
+    .where(and(eq(certificates.id, id)));
 
   return NextResponse.redirect(new URL("/certificates", request.url), 303);
 }

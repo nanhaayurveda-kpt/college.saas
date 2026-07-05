@@ -40,7 +40,7 @@ export default async function ProfessorStudentsPage() {
     ? await db
         .select()
         .from(students)
-        .where(eq(students.user_id, professor.user_id))
+        
     : [];
   const myStudents = allStudents.filter((s) =>
     assignedCourses.includes(s.course),

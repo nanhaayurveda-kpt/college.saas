@@ -24,7 +24,7 @@ export default async function MarksheetPage({ searchParams }) {
   const selectedType = params?.type || "";
   const selectedYear = params?.year || "";
 
-  const allExams = await db.select().from(exams).where(eq(exams.user_id, 1));
+  const allExams = await db.select().from(exams);
   const courses = [
     ...new Set(allExams.map((e) => e.course).filter(Boolean)),
   ].sort();

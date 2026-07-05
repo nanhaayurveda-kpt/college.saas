@@ -26,7 +26,7 @@ export async function GET(request) {
   const absentRecords = await db
     .select()
     .from(attendance)
-    .where(and(eq(attendance.date, date), eq(attendance.user_id, 1)));
+    .where(and(eq(attendance.date, date)));
 
   const absentIds = absentRecords
     .filter((a) => a.status === "absent")
@@ -39,7 +39,7 @@ export async function GET(request) {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, 1));
+    ;
 
   const absentStudents = allStudents.filter((s) => absentIds.includes(s.id));
 

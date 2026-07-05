@@ -42,7 +42,6 @@ export async function POST(request) {
     .where(
       and(
         eq(schema.exam_forms.id, id),
-        eq(schema.exam_forms.user_id, 1),
       ),
     );
 

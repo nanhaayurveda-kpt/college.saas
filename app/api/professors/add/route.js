@@ -65,7 +65,6 @@ export async function POST(request) {
 
   if (phone) {
     const conditions = [
-      eq(schema.professors.user_id, 1),
       eq(schema.professors.name, name),
       eq(schema.professors.phone, phone),
     ];
@@ -89,7 +88,6 @@ export async function POST(request) {
     email,
     pin,
     photo_url,
-    user_id: 1,
   });
 
   await setFlash("success", "Professor added successfully!");

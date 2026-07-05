@@ -21,7 +21,7 @@ import { redirect } from "next/navigation";export default async function AddExa
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, 1))
+    
     .orderBy(students.name);
 
   const now = new Date();

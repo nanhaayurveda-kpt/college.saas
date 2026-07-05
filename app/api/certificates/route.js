@@ -27,14 +27,11 @@ export async function GET(request) {
   if (studentId) {
     rows = await db.select().from(certificates).where(
       and(
-        eq(certificates.student_id, Number(studentId)),
-        eq(certificates.user_id, 1)
+        eq(certificates.student_id, Number(studentId))
       )
     );
   } else {
-    rows = await db.select().from(certificates).where(
-      eq(certificates.user_id, 1)
-    );
+    rows = await db.select().from(certificates);
   }
 
   return Response.json(rows);
@@ -71,7 +68,6 @@ export async function POST(request) {
     last_exam_passed: last_exam_passed || null,
     conduct: conduct || "Good",
     custom_content: custom_content || null,
-    user_id: 1,
   });
 
   return Response.json({ success: true });

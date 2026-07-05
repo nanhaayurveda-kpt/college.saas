@@ -20,7 +20,7 @@ export async function POST(request, { params }) {
 
   const ownRows = await db.select({ id: schema.fees.id })
     .from(schema.fees)
-    .where(and(eq(schema.fees.id, feeId), eq(schema.fees.user_id, 1)));
+    .where(and(eq(schema.fees.id, feeId)));
   if (!ownRows.length) return NextResponse.redirect(new URL("/fees", request.url), { status: 303 });
 
   const formData = await request.formData();

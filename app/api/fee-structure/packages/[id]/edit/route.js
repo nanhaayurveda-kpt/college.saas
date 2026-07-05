@@ -30,7 +30,7 @@ export async function POST(request, { params }) {
 
   const ownRows = await db.select({ id: schema.fee_packages.id })
     .from(schema.fee_packages)
-    .where(and(eq(schema.fee_packages.id, packageId), eq(schema.fee_packages.user_id, 1)));
+    .where(and(eq(schema.fee_packages.id, packageId)));
   if (!ownRows.length) return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
 
   const formData = await request.formData();
@@ -81,7 +81,6 @@ export async function POST(request, { params }) {
   const dupRows = await db.select({ id: schema.fee_packages.id })
     .from(schema.fee_packages)
     .where(and(
-      eq(schema.fee_packages.user_id, 1),
       eq(schema.fee_packages.course, course),
       eq(schema.fee_packages.academic_year, academic_year),
       ne(schema.fee_packages.id, packageId),
@@ -95,7 +94,7 @@ export async function POST(request, { params }) {
 
   await db.update(schema.fee_packages)
     .set({ course, semester, academic_year, total_amount: computedTotal })
-    .where(and(eq(schema.fee_packages.id, packageId), eq(schema.fee_packages.user_id, 1)));
+    .where(and(eq(schema.fee_packages.id, packageId)));
 
   await db.delete(schema.fee_package_items)
     .where(eq(schema.fee_package_items.package_id, packageId));

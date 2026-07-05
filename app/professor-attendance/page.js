@@ -29,7 +29,7 @@ export default async function ProfessorAttendancePage({ searchParams }) {
   const allProfessors = await db
     .select()
     .from(professors)
-    .where(eq(professors.user_id, 1));
+    ;
 
   const existing = await db
     .select()
@@ -37,7 +37,6 @@ export default async function ProfessorAttendancePage({ searchParams }) {
     .where(
       and(
         eq(professor_attendance.date, selectedDate),
-        eq(professor_attendance.user_id, 1),
       ),
     );
 

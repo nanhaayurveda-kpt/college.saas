@@ -26,7 +26,7 @@ export default async function StudentsPage({ searchParams }) {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, 1));
+    ;
 
   const faculties = [...new Set(allStudents.map((s) => s.faculty))].sort();
   const years = [

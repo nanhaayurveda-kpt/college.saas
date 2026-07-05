@@ -28,7 +28,7 @@ export default async function StudentDetailPage({ params }) {
   const result = await db
     .select()
     .from(students)
-    .where(and(eq(students.id, Number(id)), eq(students.user_id, 1)));
+    .where(and(eq(students.id, Number(id))));
   if (result.length === 0) notFound();
   const s = result[0];
   const concessions = await db

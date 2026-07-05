@@ -48,7 +48,6 @@ export async function POST(request) {
     .from(schema.timetable)
     .where(
       and(
-        eq(schema.timetable.user_id, 1),
         eq(schema.timetable.course, course),
         eq(schema.timetable.semester, semester || ""),
         eq(schema.timetable.day, day),
@@ -72,7 +71,6 @@ export async function POST(request) {
     professor_name: professor_name || null,
     start_time: start_time || "00:00",
     end_time: end_time || "00:00",
-    user_id: 1,
   });
 
   await setFlash("success", "Period added successfully!");

@@ -39,7 +39,7 @@ export default async function EditFeePage({ params }) {
     })
     .from(fees)
     .leftJoin(students, eq(fees.student_id, students.id))
-    .where(and(eq(fees.id, feeId), eq(fees.user_id, 1)));
+    .where(and(eq(fees.id, feeId)));
 
   if (!rows.length) notFound();
   const fee = rows[0];

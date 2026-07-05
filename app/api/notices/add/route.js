@@ -53,7 +53,6 @@ export async function POST(request) {
   // legitimately weeks later), so we just protect against rapid retries.
   const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
   const conditions = [
-    eq(schema.notices.user_id, 1),
     eq(schema.notices.title, title),
     eq(schema.notices.content, content),
   ];
@@ -80,7 +79,6 @@ export async function POST(request) {
     content,
     category,
     priority,
-    user_id: 1,
     created_at: new Date(),
   });
 

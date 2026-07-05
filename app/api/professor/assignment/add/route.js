@@ -47,7 +47,6 @@ export async function POST(request) {
     title,
     description,
     due_date,
-    user_id: professor.user_id,
     created_at: new Date(),
   });
 

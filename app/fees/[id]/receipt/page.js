@@ -27,7 +27,7 @@ export default async function FeeReceiptPage({ params }) {
   const settingsResult = await db
     .select()
     .from(college_settings)
-    .where(eq(college_settings.user_id, 1));
+    ;
   const settings = settingsResult[0] || {};
 
   const [fee] = await db
@@ -52,7 +52,7 @@ export default async function FeeReceiptPage({ params }) {
     })
     .from(fees)
     .leftJoin(students, eq(fees.student_id, students.id))
-    .where(and(eq(fees.id, parseInt(id)), eq(fees.user_id, 1)));
+    .where(and(eq(fees.id, parseInt(id))));
 
   if (!fee) return <div className="p-8 text-red-500">Receipt not found.</div>;
 

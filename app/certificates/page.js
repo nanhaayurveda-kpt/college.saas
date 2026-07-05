@@ -66,7 +66,7 @@ export default async function CertificatesPage({ searchParams }) {
     })
     .from(certificates)
     .leftJoin(students, eq(certificates.student_id, students.id))
-    .where(eq(students.user_id, 1))
+    
     .orderBy(desc(certificates.created_at));
 
   const filtered = allCerts.filter((c) => {

@@ -26,7 +26,7 @@ export default async function TimetablePage({ searchParams }) {
     schedule = await db
       .select()
       .from(timetable)
-      .where(and(eq(timetable.course, selectedCourse), eq(timetable.user_id, 1)));
+      .where(and(eq(timetable.course, selectedCourse)));
   }
 
   const scheduleMap = {};

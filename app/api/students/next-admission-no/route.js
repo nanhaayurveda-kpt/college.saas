@@ -38,7 +38,6 @@ export async function GET(request) {
     .from(schema.students)
     .where(
       and(
-        eq(schema.students.user_id, 1),
         like(schema.students.admission_no, `${prefix}%`),
       ),
     );

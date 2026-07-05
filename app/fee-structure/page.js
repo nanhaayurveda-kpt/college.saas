@@ -30,7 +30,7 @@ export default async function FeeStructurePage() {
   const allPackages = await db
     .select()
     .from(fee_packages)
-    .where(eq(fee_packages.user_id, 1))
+    
     .orderBy(fee_packages.course);
 
   const packageIds = allPackages.map((p) => p.id);

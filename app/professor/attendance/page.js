@@ -65,7 +65,7 @@ export default async function ProfessorAttendancePage({ searchParams }) {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, prof.user_id));
+    ;
 
   const filteredStudents = allStudents.filter((s) => {
     const isAssigned = assignedPairs.some(
@@ -83,8 +83,7 @@ export default async function ProfessorAttendancePage({ searchParams }) {
     .from(attendance)
     .where(
       and(
-        eq(attendance.date, selectedDate),
-        eq(attendance.user_id, prof.user_id)
+        eq(attendance.date, selectedDate)
       )
     );
 

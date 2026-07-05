@@ -52,7 +52,6 @@ export async function POST(request) {
     .where(
       and(
         eq(schema.professors.id, professor_id),
-        eq(schema.professors.user_id, 1),
       ),
     );
   if (!professorCheck.length) {
@@ -61,7 +60,6 @@ export async function POST(request) {
 
   // ─── Duplicate check: same professor + subject + course + semester ─────
   const conditions = [
-    eq(schema.professor_subjects.user_id, 1),
     eq(schema.professor_subjects.professor_id, professor_id),
     eq(schema.professor_subjects.subject, subject),
     eq(schema.professor_subjects.course, course),
@@ -87,7 +85,6 @@ export async function POST(request) {
     subject,
     course,
     semester,
-    user_id: 1,
   });
 
   await setFlash("success", "Subject assigned successfully!");

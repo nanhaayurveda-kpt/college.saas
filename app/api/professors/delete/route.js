@@ -35,7 +35,7 @@ export async function POST(request) {
   const professorCheck = await db
     .select()
     .from(schema.professors)
-    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)));
+    .where(and(eq(schema.professors.id, id)));
   if (!professorCheck.length) {
     return NextResponse.redirect(new URL("/professors", request.url), { status: 303 });
   }

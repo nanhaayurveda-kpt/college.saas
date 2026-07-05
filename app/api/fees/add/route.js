@@ -44,7 +44,7 @@ export async function POST(request) {
   }
 
   const studentRows = await db.select().from(schema.students)
-    .where(and(eq(schema.students.id, studentId), eq(schema.students.user_id, 1)));
+    .where(and(eq(schema.students.id, studentId)));
   const student = studentRows[0];
   if (!student) {
     await setFlash("error", "Student not found");
@@ -127,7 +127,6 @@ export async function POST(request) {
 
   for (const row of rowsToInsert) {
     const conditions = [
-      eq(schema.fees.user_id, 1),
       eq(schema.fees.student_id, studentId),
       eq(schema.fees.fee_type, row.feeType),
     ];
@@ -150,7 +149,6 @@ export async function POST(request) {
 
     await db.insert(schema.fees).values({
       student_id: studentId,
-      user_id: 1,
       amount: row.amount,
       paid_amount: rowPaid,
       fee_type: row.feeType,
@@ -171,7 +169,6 @@ export async function POST(request) {
         await db.insert(schema.fee_payments).values({
           fee_id: feeRow.id,
           student_id: studentId,
-          user_id: 1,
           amount: rowPaid,
           payment_mode: "cash",
           paid_date: new Date(paidDate),
@@ -189,7 +186,6 @@ export async function POST(request) {
       .select({ id: schema.fees.id, amount: schema.fees.amount, paid_amount: schema.fees.paid_amount, receipt_no: schema.fees.receipt_no })
       .from(schema.fees)
       .where(and(
-        eq(schema.fees.user_id, 1),
         eq(schema.fees.student_id, studentId),
         inArray(schema.fees.status, ["pending", "partial"]),
       ));
@@ -205,7 +201,6 @@ export async function POST(request) {
       await db.insert(schema.fee_payments).values({
         fee_id: oldRow.id,
         student_id: studentId,
-        user_id: 1,
         amount: remaining,
         payment_mode: "cash",
         paid_date: new Date(paidDate),

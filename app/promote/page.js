@@ -24,7 +24,7 @@ export default async function PromotePage() {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, 1));
+    ;
 
   const semesters = ["1", "2", "3", "4", "5", "6"];
 

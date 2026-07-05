@@ -44,7 +44,7 @@ export async function POST(request) {
   const studentCheck = await db
     .select()
     .from(schema.students)
-    .where(and(eq(schema.students.id, id), eq(schema.students.user_id, 1)));
+    .where(and(eq(schema.students.id, id)));
   if (!studentCheck.length) {
     return NextResponse.redirect(new URL("/students", request.url), {
       status: 303,

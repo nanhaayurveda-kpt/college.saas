@@ -28,7 +28,7 @@ export async function POST(request) {
   }
 
   const studentCheck = await db.select().from(schema.students).where(
-    and(eq(schema.students.id, id), eq(schema.students.user_id, MASTER_USER_ID)),
+    and(eq(schema.students.id, id)),
   );
   if (!studentCheck.length) return NextResponse.redirect(new URL("/students", request.url), { status: 303 });
 
@@ -44,7 +44,6 @@ export async function POST(request) {
   if (newRoll) {
     const rollConflict = await db.select().from(schema.students).where(
       and(
-        eq(schema.students.user_id, MASTER_USER_ID),
         eq(schema.students.faculty, newFaculty),
         eq(schema.students.course, newCourse),
         eq(schema.students.semester, newSemester || ""),
@@ -61,7 +60,6 @@ export async function POST(request) {
   if (newScholarNo) {
     const scholarConflict = await db.select().from(schema.students).where(
       and(
-        eq(schema.students.user_id, MASTER_USER_ID),
         eq(schema.students.scholar_no, newScholarNo),
         ne(schema.students.id, id),
       ),
@@ -100,7 +98,7 @@ export async function POST(request) {
   };
 
   await db.update(schema.students).set(updateData).where(
-    and(eq(schema.students.id, id), eq(schema.students.user_id, MASTER_USER_ID)),
+    and(eq(schema.students.id, id)),
   );
 
   await setFlash("success", "Student updated successfully!");

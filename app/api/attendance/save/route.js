@@ -18,7 +18,6 @@ export async function POST(request) {
     return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
   }
 
-  let userId = null;
   let isProfessor = false;
 
   if (adminToken) {
@@ -26,8 +25,6 @@ export async function POST(request) {
     if (!session) {
       return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
     }
-    const userResult = await db.select().from(schema.users).where(eq(schema.users.email, session.email));
-    userId = userResult[0]?.id;
   } else if (professorToken) {
     let profPayload;
     try {
@@ -36,13 +33,7 @@ export async function POST(request) {
     } catch {
       return NextResponse.redirect(new URL("/professor-login", request.url), { status: 303 });
     }
-    const profRow = await db.select().from(schema.professors).where(eq(schema.professors.id, profPayload.professorId));
-    userId = profRow[0]?.user_id;
     isProfessor = true;
-  }
-
-  if (!userId) {
-    return NextResponse.redirect(new URL("/login", request.url), { status: 303 });
   }
 
   const formData = await request.formData();
@@ -60,13 +51,13 @@ export async function POST(request) {
   const owned = await db
     .select({ id: schema.students.id })
     .from(schema.students)
-    .where(eq(schema.students.user_id, userId));
+    ;
   const ownedIds = new Set(owned.map((s) => s.id));
 
   const existingRows = await db
     .select({ student_id: schema.attendance.student_id, status: schema.attendance.status })
     .from(schema.attendance)
-    .where(and(eq(schema.attendance.date, date), eq(schema.attendance.user_id, userId)));
+    .where(and(eq(schema.attendance.date, date)));
   const existingByStudent = new Map(existingRows.map((r) => [r.student_id, r.status]));
 
   let inserted = 0;
@@ -87,8 +78,7 @@ export async function POST(request) {
         await db.delete(schema.attendance).where(
           and(
             eq(schema.attendance.student_id, studentId),
-            eq(schema.attendance.date, date),
-            eq(schema.attendance.user_id, userId)
+            eq(schema.attendance.date, date)
           )
         );
         removed++;
@@ -101,8 +91,7 @@ export async function POST(request) {
       await db.update(schema.attendance).set({ status }).where(
         and(
           eq(schema.attendance.student_id, studentId),
-          eq(schema.attendance.date, date),
-          eq(schema.attendance.user_id, userId)
+          eq(schema.attendance.date, date)
         )
       );
       updated++;
@@ -111,7 +100,6 @@ export async function POST(request) {
         student_id: studentId,
         date,
         status,
-        user_id: userId,
       });
       inserted++;
     }

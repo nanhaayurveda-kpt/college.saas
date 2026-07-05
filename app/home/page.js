@@ -48,13 +48,13 @@ export default async function HomePage() {
     [pendingExamForms],
     settingsRows,
   ] = await Promise.all([
-    db.select({ count: sql`COUNT(*)` }).from(students).where(eq(students.user_id, 1)),
-    db.select({ count: sql`COUNT(*)` }).from(professors).where(eq(professors.user_id, 1)),
-    db.select({ total: sql`SUM(amount - paid_amount)`, count: sql`COUNT(*)` }).from(fees).where(and(sql`status IN ('pending', 'partial')`, eq(fees.user_id, 1))),
-    db.select({ total: sql`SUM(paid_amount)` }).from(fees).where(eq(fees.user_id, 1)),
-    db.select({ count: sql`COUNT(*)` }).from(exams).where(eq(exams.user_id, 1)),
-    db.select({ count: sql`COUNT(*)` }).from(exam_forms).where(and(sql`form_status = 'pending'`, eq(exam_forms.user_id, 1))),
-    db.select().from(college_settings).where(eq(college_settings.user_id, 1)),
+    db.select({ count: sql`COUNT(*)` }).from(students),
+    db.select({ count: sql`COUNT(*)` }).from(professors),
+    db.select({ total: sql`SUM(amount - paid_amount)`, count: sql`COUNT(*)` }).from(fees).where(and(sql`status IN ('pending', 'partial')`)),
+    db.select({ total: sql`SUM(paid_amount)` }).from(fees),
+    db.select({ count: sql`COUNT(*)` }).from(exams),
+    db.select({ count: sql`COUNT(*)` }).from(exam_forms).where(and(sql`form_status = 'pending'`)),
+    db.select().from(college_settings),
   ]);
 
   const settings = settingsRows[0] || null;
@@ -64,7 +64,7 @@ export default async function HomePage() {
     .select({ name: students.name, course: students.course, semester: students.semester, status: attendance.status, student_id: attendance.student_id })
     .from(attendance)
     .leftJoin(students, eq(attendance.student_id, students.id))
-    .where(and(eq(attendance.user_id, 1), eq(attendance.date, today)));
+    .where(and(eq(attendance.date, today)));
 
   const semMap = {};
   const markedStudentIds = new Set();
@@ -76,7 +76,7 @@ export default async function HomePage() {
     markedStudentIds.add(r.student_id);
   });
 
-  const allStudentsForNA = await db.select({ id: students.id, name: students.name, course: students.course, semester: students.semester }).from(students).where(eq(students.user_id, 1));
+  const allStudentsForNA = await db.select({ id: students.id, name: students.name, course: students.course, semester: students.semester }).from(students);
   allStudentsForNA.forEach((s) => {
     if (!markedStudentIds.has(s.id)) {
       const key = (s.course || "—") + "||" + (s.semester || "—");
@@ -91,12 +91,12 @@ export default async function HomePage() {
     .select({ name: professors.name, professor_id: professor_attendance.professor_id, status: professor_attendance.status })
     .from(professor_attendance)
     .leftJoin(professors, eq(professor_attendance.professor_id, professors.id))
-    .where(and(eq(professor_attendance.user_id, 1), eq(professor_attendance.date, today)));
+    .where(and(eq(professor_attendance.date, today)));
 
   const profPresentList = profAttRows.filter((r) => r.status === "present").map((r) => r.name);
   const profAbsentList = profAttRows.filter((r) => r.status === "absent").map((r) => r.name || "Unknown");
   const markedProfIds = new Set(profAttRows.map((r) => r.professor_id));
-  const allProfsForNA = await db.select({ id: professors.id, name: professors.name }).from(professors).where(eq(professors.user_id, 1));
+  const allProfsForNA = await db.select({ id: professors.id, name: professors.name }).from(professors);
   const profNAList = allProfsForNA.filter((p) => !markedProfIds.has(p.id)).map((p) => p.name);
 
   return (

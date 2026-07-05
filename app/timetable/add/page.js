@@ -37,7 +37,7 @@ export default async function AddPeriodPage({ searchParams }) {
   const allProfessors = await db
     .select()
     .from(professors)
-    .where(eq(professors.user_id, 1));
+    ;
 
   return (
     <div>

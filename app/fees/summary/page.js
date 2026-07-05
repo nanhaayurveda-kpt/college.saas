@@ -40,7 +40,7 @@ export default async function FeesSummaryPage({ searchParams }) {
     })
     .from(fees)
     .leftJoin(students, eq(fees.student_id, students.id))
-    .where(eq(students.user_id, 1))
+    
     .orderBy(
       students.faculty,
       students.course,

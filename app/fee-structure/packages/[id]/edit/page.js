@@ -20,7 +20,7 @@ export default async function EditPackagePage({ params }) {
   const pkgRows = await db
     .select()
     .from(fee_packages)
-    .where(and(eq(fee_packages.id, packageId), eq(fee_packages.user_id, 1)));
+    .where(and(eq(fee_packages.id, packageId)));
   const pkg = pkgRows[0];
   if (!pkg) redirect("/fee-structure");
 

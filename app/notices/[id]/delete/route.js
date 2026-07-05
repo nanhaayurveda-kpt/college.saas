@@ -18,7 +18,7 @@ export async function GET(request, { params }) {
   if (!isNaN(noticeId)) {
     await db
       .delete(notices)
-      .where(and(eq(notices.id, noticeId), eq(notices.user_id, 1)));
+      .where(and(eq(notices.id, noticeId)));
   }
 
   redirect("/notices");

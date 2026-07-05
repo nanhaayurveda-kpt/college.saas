@@ -57,7 +57,7 @@ export async function POST(request) {
   const existing = await db
     .select()
     .from(schema.college_settings)
-    .where(eq(schema.college_settings.user_id, 1));
+    ;
   const current = existing[0] || {};
 
   const formData = await request.formData();
@@ -95,7 +95,6 @@ export async function POST(request) {
   }
 
   const data = {
-    user_id: 1,
     ...parsed.data,
     logo_url,
     signature_url,
@@ -106,7 +105,7 @@ export async function POST(request) {
     await db
       .update(schema.college_settings)
       .set(data)
-      .where(eq(schema.college_settings.user_id, 1));
+      ;
   } else {
     await db.insert(schema.college_settings).values(data);
   }

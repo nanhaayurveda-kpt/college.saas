@@ -41,7 +41,6 @@ export async function POST(request) {
       and(
         eq(schema.fee_concessions.id, id),
         eq(schema.fee_concessions.student_id, student_id),
-        eq(schema.fee_concessions.user_id, 1),
       ),
     );
 

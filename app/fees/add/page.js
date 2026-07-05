@@ -19,13 +19,13 @@ export default async function AddFeePage() {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, 1))
+    
     .orderBy(students.name);
 
   const allPackages = await db
     .select()
     .from(fee_packages)
-    .where(eq(fee_packages.user_id, 1));
+    ;
 
   const packageIds = allPackages.map((p) => p.id);
   const allItems = packageIds.length > 0
@@ -41,7 +41,7 @@ export default async function AddFeePage() {
   const allFees = await db
     .select({ student_id: fees.student_id, amount: fees.amount, paid_amount: fees.paid_amount, status: fees.status })
     .from(fees)
-    .where(eq(fees.user_id, 1));
+    ;
 
   const duesMap = {};
   for (const f of allFees) {
@@ -51,7 +51,7 @@ export default async function AddFeePage() {
     }
   }
 
-  const allConcessions = await db.select().from(fee_concessions).where(eq(fee_concessions.user_id, 1));
+  const allConcessions = await db.select().from(fee_concessions);
   const studentIds = allStudents.map((s) => s.id);
   const concessions = allConcessions.filter((c) => studentIds.includes(c.student_id));
 

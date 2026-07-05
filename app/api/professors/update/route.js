@@ -64,7 +64,7 @@ export async function POST(request) {
   const professorCheck = await db
     .select()
     .from(schema.professors)
-    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)));
+    .where(and(eq(schema.professors.id, id)));
   if (!professorCheck.length) {
     return NextResponse.redirect(new URL("/professors", request.url), {
       status: 303,
@@ -110,7 +110,6 @@ export async function POST(request) {
   // ─── Duplicate check: same name + phone (excluding self) ───────────────
   if (phone) {
     const conditions = [
-      eq(schema.professors.user_id, 1),
       eq(schema.professors.name, name),
       eq(schema.professors.phone, phone),
       ne(schema.professors.id, id),
@@ -142,7 +141,7 @@ export async function POST(request) {
       pin,
       photo_url,
     })
-    .where(and(eq(schema.professors.id, id), eq(schema.professors.user_id, 1)));
+    .where(and(eq(schema.professors.id, id)));
 
   await setFlash("success", "Professor updated successfully!");
   return NextResponse.redirect(new URL(`/professors/${id}`, request.url), {

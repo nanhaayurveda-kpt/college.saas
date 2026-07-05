@@ -27,7 +27,7 @@ export default async function AttendancePage({ searchParams }) {
   const allStudents = await db
     .select()
     .from(students)
-    .where(eq(students.user_id, 1));
+    ;
 
   const courses = [
     ...new Set(allStudents.map((s) => s.course).filter(Boolean)),
@@ -41,7 +41,7 @@ export default async function AttendancePage({ searchParams }) {
     .select()
     .from(attendance)
     .leftJoin(students, eq(attendance.student_id, students.id))
-    .where(and(eq(attendance.date, selectedDate), eq(students.user_id, 1)));
+    .where(and(eq(attendance.date, selectedDate)));
 
   const attendanceMap = {};
   todayAttendance.forEach((a) => {

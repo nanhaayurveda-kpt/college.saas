@@ -23,12 +23,12 @@ export async function POST(request) {
 
   const ownRows = await db.select({ id: schema.fee_packages.id })
     .from(schema.fee_packages)
-    .where(and(eq(schema.fee_packages.id, id), eq(schema.fee_packages.user_id, 1)));
+    .where(and(eq(schema.fee_packages.id, id)));
 
   if (ownRows.length === 0) return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });
 
   await db.delete(schema.fee_package_items).where(eq(schema.fee_package_items.package_id, id));
-  await db.delete(schema.fee_packages).where(and(eq(schema.fee_packages.id, id), eq(schema.fee_packages.user_id, 1)));
+  await db.delete(schema.fee_packages).where(and(eq(schema.fee_packages.id, id)));
 
   await setFlash("success", "Package deleted");
   return NextResponse.redirect(new URL("/fee-structure", request.url), { status: 303 });

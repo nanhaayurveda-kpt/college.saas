@@ -64,7 +64,6 @@ export async function POST(request) {
     .where(
       and(
         eq(schema.students.id, student_id),
-        eq(schema.students.user_id, 1),
       ),
     );
   if (!studentCheck.length) {
@@ -74,7 +73,6 @@ export async function POST(request) {
   // ─── Duplicate check: same student + cert_type + issue_date ────────────
   // Prevents accidental re-issue of the same certificate on the same day
   const conditions = [
-    eq(schema.certificates.user_id, 1),
     eq(schema.certificates.student_id, student_id),
     eq(schema.certificates.cert_type, cert_type),
     eq(schema.certificates.issue_date, issue_date),
@@ -101,7 +99,6 @@ export async function POST(request) {
     .from(schema.certificates)
     .where(
       and(
-        eq(schema.certificates.user_id, 1),
         like(schema.certificates.serial_no, `${serialBase}%`),
       ),
     );
@@ -124,7 +121,6 @@ export async function POST(request) {
     last_exam_passed,
     conduct,
     custom_content,
-    user_id: 1,
   });
 
   await setFlash("success", `Certificate issued! Serial No: ${serial_no}`);

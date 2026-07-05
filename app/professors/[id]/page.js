@@ -35,12 +35,12 @@ export default async function ProfessorDetailPage({ params }) {
   if (!user) redirect("/login");
 
   const result = await db.select().from(professors)
-    .where(and(eq(professors.id, Number(id)), eq(professors.user_id, 1)));
+    .where(and(eq(professors.id, Number(id))));
   if (result.length === 0) notFound();
   const p = result[0];
 
   const subjects = await db.select().from(professor_subjects)
-    .where(and(eq(professor_subjects.professor_id, Number(id)), eq(professor_subjects.user_id, 1)));
+    .where(and(eq(professor_subjects.professor_id, Number(id))));
 
   return (
     <div>

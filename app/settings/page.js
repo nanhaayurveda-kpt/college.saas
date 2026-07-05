@@ -27,7 +27,7 @@ export default async function SettingsPage() {
   const result = await db
     .select()
     .from(college_settings)
-    .where(eq(college_settings.user_id, 1));
+    ;
   const s = result[0] || {};
 
   return (
